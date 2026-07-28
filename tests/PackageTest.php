@@ -54,6 +54,32 @@ final class PackageTest extends BaseTestCase
         self::assertCount(18, Migration::COLLECTIONS);
     }
 
+    /**
+     * The 18 migration endpoints are generated through __call, so no path
+     * literal exists for the coverage scanner to find. They are declared in
+     * .api-coverage.yml instead — which means that file is a hand-maintained
+     * promise, and a promise nothing checks is one that drifts.
+     *
+     * Adding a collection without updating the manifest would silently drop
+     * this SDK to 103/104 with no failing test anywhere to explain why.
+     */
+    public function testCoverageManifestMatchesTheGeneratedCollections(): void
+    {
+        $manifest = (string) file_get_contents(__DIR__ . '/../.api-coverage.yml');
+        preg_match_all('#- GET /api/migration/v1/(\w+)#', $manifest, $matches);
+
+        $declared = $matches[1];
+        $implemented = array_values(Migration::COLLECTIONS);
+        sort($declared);
+        sort($implemented);
+
+        self::assertSame(
+            $implemented,
+            $declared,
+            '.api-coverage.yml is out of sync with Migration::COLLECTIONS'
+        );
+    }
+
     public function testVersionIsSemver(): void
     {
         self::assertMatchesRegularExpression('/^\d+\.\d+\.\d+$/', Version::VERSION);

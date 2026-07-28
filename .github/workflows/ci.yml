@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  # Composer resolves dependencies fresh on every run (this is a library, so
+  # composer.lock is deliberately not committed). A weekly run catches a
+  # dependency release that breaks us before a user finds it.
+  schedule:
+    - cron: '0 6 * * 1'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # composer.json declares ">=8.1", so every version in that range is
+        # tested. Before this workflow existed the package advertised a floor
+        # it had never been run against — it was only ever executed on 8.5.
+        php: ['8.1', '8.2', '8.3', '8.4', '8.5']
+        dependencies: [highest]
+        include:
+          # The lowest-dependency run pins psr/log to its oldest allowed
+          # release (^1.1). Without it, "psr/log": "^1.1 || ^2.0 || ^3.0" is an
+          # untested claim — CI would only ever install 3.x.
+          - php: '8.1'
+            dependencies: lowest
+
+    name: PHP ${{ matrix.php }} (${{ matrix.dependencies }} deps)
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP ${{ matrix.php }}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: curl, json, mbstring
+          coverage: none
+          ini-values: error_reporting=E_ALL
+
+      - name: Validate composer.json
+        run: composer validate --strict
+
+      - name: Install dependencies
+        uses: ramsey/composer-install@v3
+        with:
+          dependency-versions: ${{ matrix.dependencies }}
+
+      - name: Lint every source file
+        # Catches a parse error on an older PHP that the test run would
+        # otherwise report as a confusing autoload failure.
+        run: find src tests -name '*.php' -print0 | xargs -0 -n1 php -l
+
+      - name: Run tests
+        # Deprecations fail the build on purpose. A PHPUnit deprecation is how
+        # the @dataProvider doc-comment problem surfaced, and left as a warning
+        # it would sit unnoticed until PHPUnit 12 removed the feature outright.
+        run: >-
+          vendor/bin/phpunit
+          --fail-on-deprecation
+          --fail-on-notice
+          --fail-on-warning
+          --fail-on-phpunit-deprecation
+
+      # The .api-coverage.yml manifest is checked by the suite itself
+      # (PackageTest::testCoverageManifestMatchesTheGeneratedCollections)
+      # rather than a bespoke step here, so it runs on every PHP version and
+      # can be reproduced locally with `composer test`.
