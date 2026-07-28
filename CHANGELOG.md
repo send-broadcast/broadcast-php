@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Changed
+- **`Response` rejects appending.** `$response[] = $value` now throws
+  `LogicException`. A Response wraps a JSON object; appending created an integer
+  key beside the string ones, leaving a body that was neither an object nor a
+  list, and contradicted the declared `array<string, mixed>`. Assign a key
+  instead. Found by PHPStan, pinned by a test.
+
+### Added
+- PHPStan level 8, wired into `composer analyse` and CI. The transport boundary
+  is now typed precisely: HTTP verbs are a literal union and paths are
+  `non-empty-string`, so the cURL option types can be verified rather than
+  assumed.
+
 ## [0.1.0] - 2026-07-27
 
 First release. Feature parity with `broadcast-ruby` v0.3.0 — the reference

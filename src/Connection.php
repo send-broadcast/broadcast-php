@@ -41,7 +41,12 @@ final class Connection
         $this->http = $config->httpClient ?? new CurlHttpClient();
     }
 
-    /** @param array<string,mixed>|null $payload */
+    /**
+     * @param 'GET'|'POST'|'PATCH'|'PUT'|'DELETE' $method
+     * @param non-empty-string $path always begins with a slash
+     * @param array<string,mixed>|null $payload
+     * @param array<string,mixed> $headers
+     */
     public function request(
         string $method,
         string $path,
@@ -58,6 +63,10 @@ final class Connection
 
     // --- Request building ---------------------------------------------------
 
+    /**
+     * @param non-empty-string $path
+     * @return non-empty-string
+     */
     private function buildUrl(string $path, string $method, mixed $payload): string
     {
         $url = $this->config->host . $path;
@@ -105,7 +114,11 @@ final class Connection
         return (string) $value;
     }
 
-    /** @param array<string,mixed> $extraHeaders */
+    /**
+     * @param 'GET'|'POST'|'PATCH'|'PUT'|'DELETE' $method
+     * @param non-empty-string $url
+     * @param array<string,mixed> $extraHeaders
+     */
     private function execute(
         string $method,
         string $url,
@@ -152,7 +165,12 @@ final class Connection
     // worse than failing; and anything that changes host, because every request
     // carries the API token.
 
-    /** @param array{status:int, headers:array<string,string>, body:string} $response */
+    /**
+     * @param array{status:int, headers:array<string,string>, body:string} $response
+     * @param 'GET'|'POST'|'PATCH'|'PUT'|'DELETE' $method
+     * @param non-empty-string $url
+     * @param array<string,mixed> $extraHeaders
+     */
     private function followRedirect(
         array $response,
         string $method,
@@ -193,6 +211,10 @@ final class Connection
         return $this->execute('GET', $target, null, $extraHeaders, $raw, $redirects + 1);
     }
 
+    /**
+     * @param non-empty-string $base
+     * @return non-empty-string
+     */
     private static function resolveUrl(string $base, string $location): string
     {
         if (preg_match('#^https?://#i', $location) === 1) {

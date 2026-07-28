@@ -418,10 +418,12 @@ final URL.
 ```bash
 composer install
 composer test          # mocked HTTP, no network
+composer analyse       # PHPStan level 8
+composer check         # both
 ```
 
-CI runs the suite on PHP 8.1 through 8.5, and against both the oldest and
-newest allowed `psr/log`.
+CI runs the suite on PHP 8.1 through 8.5 and against both the oldest and newest
+allowed `psr/log`, plus PHPStan level 8 on the highest version.
 
 ---
 
@@ -439,7 +441,7 @@ newest allowed `psr/log`.
 |---|---|---|
 | PHP | broadcast/broadcast-php | this repository |
 | Ruby | [broadcast-ruby](https://rubygems.org/gems/broadcast-ruby) | [broadcast-ruby](https://github.com/send-broadcast/broadcast-ruby) |
-| Node / TypeScript | @broadcast/sdk | [broadcast-node](https://github.com/send-broadcast/broadcast-node) |
+| Node / TypeScript | @send-broadcast/sdk | [broadcast-node](https://github.com/send-broadcast/broadcast-node) |
 | Python | broadcast-python | [broadcast-python](https://github.com/send-broadcast/broadcast-python) |
 
 All four cover the same 104 operations and behave the same way on the wire — the transport contract (warnings, idempotency, rate-limit handling, redirect safety, credential redaction) is identical across languages.

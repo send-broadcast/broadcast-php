@@ -144,12 +144,18 @@ final class Response implements \ArrayAccess, \IteratorAggregate, \Countable, \J
 
     public function offsetSet(mixed $offset, mixed $value): void
     {
+        // A Response wraps a JSON object. Appending would add an integer key
+        // beside the string ones, leaving a body that is neither an object nor
+        // a list — and json_encode would then change shape depending on which
+        // keys survived. It also contradicted the declared array<string, mixed>.
         if ($offset === null) {
-            $this->data[] = $value;
-
-            return;
+            throw new \LogicException(
+                'A Broadcast\\Response wraps a JSON object and cannot be appended to. '
+                . 'Assign a key instead: $response[\'name\'] = $value.'
+            );
         }
-        $this->data[$offset] = $value;
+
+        $this->data[(string) $offset] = $value;
     }
 
     public function offsetUnset(mixed $offset): void

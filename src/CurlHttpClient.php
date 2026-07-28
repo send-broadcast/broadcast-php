@@ -9,6 +9,12 @@ use Broadcast\Exception\TimeoutException;
 /** Default transport. Follows no redirects — Connection handles them explicitly. */
 final class CurlHttpClient implements HttpClientInterface
 {
+    /**
+     * @param non-empty-string $method
+     * @param non-empty-string $url
+     * @param array<string,string> $headers
+     * @return array{status:int, headers:array<string,string>, body:string}
+     */
     public function send(string $method, string $url, array $headers, ?string $body, int $timeout, int $openTimeout): array
     {
         $handle = curl_init();

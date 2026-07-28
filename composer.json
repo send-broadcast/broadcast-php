@@ -2,11 +2,20 @@
   "name": "broadcast/broadcast-php",
   "description": "PHP client for the Broadcast email platform. Subscribers, sequences, broadcasts, segments, templates, autopilot, webhooks, and transactional email.",
   "type": "library",
-  "keywords": ["broadcast", "email", "newsletter", "transactional", "email-marketing", "sendbroadcast"],
+  "keywords": [
+    "broadcast",
+    "email",
+    "newsletter",
+    "transactional",
+    "email-marketing",
+    "sendbroadcast"
+  ],
   "homepage": "https://sendbroadcast.net",
   "license": "MIT",
   "authors": [
-    { "name": "Simon Chiu" }
+    {
+      "name": "Simon Chiu"
+    }
   ],
   "require": {
     "php": ">=8.1",
@@ -15,6 +24,7 @@
     "psr/log": "^1.1 || ^2.0 || ^3.0"
   },
   "require-dev": {
+    "phpstan/phpstan": "^2.2",
     "phpunit/phpunit": "^10.5 || ^11.0"
   },
   "suggest": {
@@ -31,9 +41,19 @@
     }
   },
   "scripts": {
-    "test": "phpunit"
+    "test": "phpunit",
+    "analyse": "phpstan analyse --memory-limit=512M",
+    "check": [
+      "@analyse",
+      "@test"
+    ]
   },
   "config": {
     "sort-packages": true
+  },
+  "scripts-descriptions": {
+    "test": "Run the PHPUnit suite (mocked HTTP, no network)",
+    "analyse": "Run PHPStan at level 8",
+    "check": "Static analysis then tests \u2014 what CI runs"
   }
 }

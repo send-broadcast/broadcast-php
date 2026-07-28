@@ -16,6 +16,8 @@ namespace Broadcast;
 interface HttpClientInterface
 {
     /**
+     * @param non-empty-string $method HTTP verb, uppercase
+     * @param non-empty-string $url absolute URL including scheme
      * @param array<string,string> $headers
      * @return array{status:int, headers:array<string,string>, body:string}
      */

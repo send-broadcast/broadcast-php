@@ -18,25 +18,38 @@ abstract class BaseResource
     {
     }
 
-    /** @param array<string,mixed> $params */
+    /**
+     * @param non-empty-string $path
+     * @param array<string,mixed> $params
+     */
     protected function httpGet(string $path, array $params = [], bool $raw = false): mixed
     {
         return $this->client->request('GET', $path, $params, [], $raw);
     }
 
-    /** @param array<string,mixed> $body @param array<string,mixed> $headers */
+    /**
+     * @param non-empty-string $path
+     * @param array<string,mixed> $body
+     * @param array<string,mixed> $headers
+     */
     protected function httpPost(string $path, array $body = [], array $headers = []): mixed
     {
         return $this->client->request('POST', $path, $body, $headers);
     }
 
-    /** @param array<string,mixed> $body */
+    /**
+     * @param non-empty-string $path
+     * @param array<string,mixed> $body
+     */
     protected function httpPatch(string $path, array $body = []): mixed
     {
         return $this->client->request('PATCH', $path, $body);
     }
 
-    /** @param array<string,mixed>|null $body */
+    /**
+     * @param non-empty-string $path
+     * @param array<string,mixed>|null $body
+     */
     protected function httpDelete(string $path, ?array $body = null): mixed
     {
         return $this->client->request('DELETE', $path, $body);

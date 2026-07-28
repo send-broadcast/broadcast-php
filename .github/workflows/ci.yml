@@ -61,6 +61,18 @@ jobs:
         # otherwise report as a confusing autoload failure.
         run: find src tests -name '*.php' -print0 | xargs -0 -n1 php -l
 
+      - name: Static analysis
+        # PHPStan level 8 — the highest without strict-rules. It found a real
+        # type lie on first run: Response declared array<string, mixed> while
+        # offsetSet(null, ...) created integer keys.
+        #
+        # Runs only on the highest PHP in the matrix. PHPStan analyses source
+        # rather than executing it, so repeating it per version costs time
+        # without checking anything new; the version floor is proven by the
+        # test job.
+        if: matrix.php == '8.5' && matrix.dependencies == 'highest'
+        run: composer analyse
+
       - name: Run tests
         # Deprecations fail the build on purpose. A PHPUnit deprecation is how
         # the @dataProvider doc-comment problem surfaced, and left as a warning

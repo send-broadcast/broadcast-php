@@ -1,0 +1,47 @@
+parameters:
+    # Level 8 is the highest without strict-rules. It adds null-safety on top of
+    # level 7's union handling, which is the class of bug worth catching here:
+    # the client threads optional headers, optional bodies and nullable config
+    # through every request.
+    level: 8
+
+    paths:
+        - src
+        - tests
+
+    # The suite deliberately feeds bad input to prove it is rejected, and
+    # PHPUnit's assertions confuse inference about what a value is afterwards.
+    treatPhpDocTypesAsCertain: false
+
+    ignoreErrors:
+        # Response bodies are parsed JSON. Until the OpenAPI overlay carries
+        # response schemas there is nothing to type them against, so `mixed`
+        # here is honest rather than lazy — inventing a shape would be a lie the
+        # compiler enforces.
+        -
+            identifier: missingType.iterableValue
+            path: src/Resources/*.php
+
+        # PackageTest asserts the exception hierarchy — that AuthenticationException
+        # extends ApiException, and that ValidationException deliberately does not.
+        # PHPStan can prove those statically, which is precisely why they hold; the
+        # tests exist so the guarantee survives for consumers who never run PHPStan,
+        # and so a change to the hierarchy fails a test rather than only a lint.
+        -
+            identifier: function.alreadyNarrowedType
+            path: tests/PackageTest.php
+        -
+            identifier: function.impossibleType
+            path: tests/PackageTest.php
+
+        # The test calls a collection that does not exist, on purpose, to prove
+        # __call rejects it with BadMethodCallException rather than a fatal.
+        -
+            identifier: method.notFound
+            path: tests/ResourcesTest.php
+
+        # PHPStan infers the literal array passed two lines earlier rather than
+        # the recorded request body, so it believes the key cannot be present.
+        -
+            identifier: offsetAccess.notFound
+            path: tests/ResourcesTest.php

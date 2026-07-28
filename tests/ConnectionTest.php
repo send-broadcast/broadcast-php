@@ -146,7 +146,9 @@ final class ConnectionTest extends TestCase
         self::assertInstanceOf(Response::class, $result);
         self::assertSame(7, $result['id']);
         self::assertSame(201, $result->status());
-        self::assertSame(120, $result->rateLimit()->limit);
+        $rateLimit = $result->rateLimit();
+        self::assertNotNull($rateLimit);
+        self::assertSame(120, $rateLimit->limit);
     }
 
     public function testABodyFieldNamedStatusIsNotShadowed(): void
@@ -201,6 +203,7 @@ final class ConnectionTest extends TestCase
 
     // Attribute rather than an @dataProvider doc-comment: metadata in
     // doc-comments is deprecated in PHPUnit 11 and unsupported in 12.
+    /** @param class-string<\Throwable> $class */
     #[DataProvider('errorCases')]
     public function testStatusCodesMapToTypedExceptions(int $status, string $class, string $default): void
     {

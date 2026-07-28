@@ -147,6 +147,8 @@ final class Client
 
     /**
      * @internal
+     * @param 'GET'|'POST'|'PATCH'|'PUT'|'DELETE' $method
+     * @param non-empty-string $path always begins with a slash
      * @param array<string,mixed> $headers
      */
     public function request(
