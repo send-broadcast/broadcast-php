@@ -11,5 +11,5 @@ final class Version
      * A User-Agent that lies about its version misattributes server-side
      * client analytics.
      */
-    public const VERSION = '0.1.0';
+    public const VERSION = '0.2.0';
 }

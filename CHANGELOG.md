@@ -2,7 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [0.2.0] - 2026-07-28
+
+A minor rather than a patch bump: `Response` now rejects an operation it
+previously accepted. The old behaviour produced an incoherent body, so nothing
+sensible depended on it, but code that ran before can now throw — and that is a
+breaking change however unlikely it is to bite.
 
 ### Changed
 - **`Response` rejects appending.** `$response[] = $value` now throws
