@@ -1,20 +1,32 @@
 # broadcast/broadcast-php
 
-PHP client for [Broadcast](https://sendbroadcast.net), the email marketing
-platform. Works with any Broadcast instance — self-hosted or SaaS.
+Official PHP client for [Broadcast](https://sendbroadcast.net), the self-hosted email marketing platform.
 
-Covers **104/104 API operations**, verified against the API's generated OpenAPI
-document.
+Works with any Broadcast instance — self-hosted or SaaS. Covers **104/104 API operations**, verified against the API's generated OpenAPI document.
+
+📖 **[PHP SDK documentation](https://sendbroadcast.net/docs/php-sdk)** · [API reference](https://sendbroadcast.net/docs/api-authentication) · [All docs](https://sendbroadcast.net/docs)
+
+Also available: [Ruby](https://github.com/send-broadcast/broadcast-ruby) · [Node/TypeScript](https://github.com/send-broadcast/broadcast-node) · [Python](https://github.com/send-broadcast/broadcast-python)
+
+## Installation
 
 ```bash
 composer require broadcast/broadcast-php
 ```
 
-PHP 8.1+, `ext-curl`, `ext-json`. The only Composer dependency is `psr/log`.
+PHP 8.1+ with `ext-curl` and `ext-json`. The only Composer dependency is
+`psr/log`, so it drops into a Laravel app, a WordPress plugin, or a plain script
+without pulling in a stack of transitive packages.
 
----
+## Getting Your API Token
 
-## Quick start
+1. Log in to your Broadcast dashboard
+2. Go to **Settings > API Keys**
+3. Click **New API Key**
+4. Name it, select the permissions you need (see [Permissions](#api-token-permissions) below), and save
+5. Copy the token
+
+## Quick Start
 
 ```php
 use Broadcast\Client;
@@ -99,6 +111,29 @@ part of it. A mistyped filter silently widens a result set unless you look.
 
 ---
 
+## Rate Limits
+
+Every response carries the current limit state, and 429s are retried
+automatically honouring the server's `Retry-After` (capped at `maxRetryDelay`).
+
+```php
+$result = $client->subscribers->list();
+
+$result->rateLimit()->limit;      // 120
+$result->rateLimit()->remaining;  // 118
+$result->rateLimit()->reset;      // DateTimeImmutable
+
+// Back off before you get throttled
+if ($result->rateLimit()?->remaining < 10) {
+    sleep(1);
+}
+```
+
+If the retries are exhausted you get a `RateLimitException`, which carries
+`->retryAfter` so you can requeue the job sensibly.
+
+---
+
 ## Errors
 
 ```
@@ -125,7 +160,7 @@ deterministic, so retrying is pure latency.
 
 ---
 
-## Resources
+## Common Tasks
 
 ### Subscribers
 
@@ -263,7 +298,7 @@ It surfaces as `AuthorizationException`.
 
 ---
 
-## Channel scoping
+## Channel Scoping
 
 ```php
 $client->withChannel(123, fn () => $client->emailServers->list());
@@ -302,7 +337,7 @@ a decoded array changes the bytes and verification will fail.
 
 ---
 
-## Using your own HTTP client
+## Using Your Own HTTP Client
 
 The bundled `CurlHttpClient` keeps installation dependency-free. To route
 requests through Guzzle, Symfony HttpClient, or a PSR-18 client, implement
@@ -318,12 +353,96 @@ one request and one response.
 
 ---
 
+## API Token Permissions
+
+Each token can be scoped to specific resources. Use the minimum permissions your
+integration requires.
+
+| Resource | Read permission | Write permission |
+|----------|----------------|------------------|
+| Transactional Emails | `transactionals_read` -- get delivery status | `transactionals_write` -- send emails |
+| Subscribers | `subscribers_read` -- list, find | `subscribers_write` -- create, update, tag, deactivate, unsubscribe, redact |
+| Sequences | `sequences_read` -- list, get, list steps | `sequences_write` -- create, update, delete, manage steps, enroll subscribers |
+| Broadcasts | `broadcasts_read` -- list, get, statistics | `broadcasts_write` -- create, update, delete, send, schedule |
+| Segments | `segments_read` -- list, get | `segments_write` -- create, update, delete |
+| Templates | `templates_read` -- list, get | `templates_write` -- create, update, delete |
+| Opt-In Forms | `opt_in_forms_read` -- list, get, analytics | `opt_in_forms_write` -- create, update, delete, create_variant, duplicate |
+| Email Servers | `email_servers_read` -- list, get | `email_servers_write` -- create, update, delete, test_connection, copy_to_channel (admin) |
+| Webhook Endpoints | `webhook_endpoints_read` -- list, get, deliveries | `webhook_endpoints_write` -- create, update, delete, test |
+| Autopilot | `autopilot_read` -- list, get, runs | `autopilot_write` -- create, update, delete, activate, pause, deactivate, trigger_run |
+
+---
+
+## Troubleshooting
+
+### `AuthenticationException` (401)
+
+- **Check the token:** it must be an API key from **Settings > API Keys**, not a
+  password or a session cookie.
+- **Check the host:** pointing at the wrong instance produces a valid-looking
+  401, because the token is unknown there.
+
+### `AuthorizationException` (403)
+
+The token is valid but lacks the permission for that call. Check the table
+above, then re-issue the key with the resource enabled — permissions are fixed
+at creation.
+
+On a demo instance, the entire migration API returns 403 for every request,
+valid token or not.
+
+### `ValidationException` (422) on a repeated send
+
+If you reused an `idempotency_key` with a *different* payload, the API rejects
+it: the key is fingerprinted over method, path and body. It means "this key was
+already used for something else", not that the email was invalid. Use a new key.
+
+### Emails accepted but never delivered
+
+Call `$client->status()`. If `readiness.transactionals` is `false`, the channel
+has no usable email server or sender identity — the API accepts the request and
+the send stalls. On a demo instance, sends are always accepted and never
+delivered.
+
+### `ApiException` mentioning a redirect
+
+Your `host` is wrong — usually `http` instead of `https`, or a bare apex that
+redirects to `www`. The client refuses to follow redirects on writes, and never
+across hosts, because every request carries your API token. Set `host` to the
+final URL.
+
+---
+
 ## Development
 
 ```bash
 composer install
 composer test          # mocked HTTP, no network
 ```
+
+CI runs the suite on PHP 8.1 through 8.5, and against both the oldest and
+newest allowed `psr/log`.
+
+---
+
+## Documentation
+
+- **[PHP SDK guide](https://sendbroadcast.net/docs/php-sdk)** — the same material as this README, on the docs site
+- **[API reference](https://sendbroadcast.net/docs/api-authentication)** — endpoints, parameters, and permissions
+- **[API response warnings](https://sendbroadcast.net/docs/api-response-warnings)** — why a 2xx can still tell you something went wrong
+- **[Webhook endpoints](https://sendbroadcast.net/docs/api-webhook-endpoints)** — signature format and event types
+- **[Agents CLI](https://sendbroadcast.net/docs/agents-cli)** — the same credentials, from a terminal
+
+### Other SDKs
+
+| Language | Package | Repository |
+|---|---|---|
+| PHP | broadcast/broadcast-php | this repository |
+| Ruby | [broadcast-ruby](https://rubygems.org/gems/broadcast-ruby) | [broadcast-ruby](https://github.com/send-broadcast/broadcast-ruby) |
+| Node / TypeScript | @broadcast/sdk | [broadcast-node](https://github.com/send-broadcast/broadcast-node) |
+| Python | broadcast-python | [broadcast-python](https://github.com/send-broadcast/broadcast-python) |
+
+All four cover the same 104 operations and behave the same way on the wire — the transport contract (warnings, idempotency, rate-limit handling, redirect safety, credential redaction) is identical across languages.
 
 ---
 
