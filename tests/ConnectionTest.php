@@ -16,6 +16,7 @@ use Broadcast\Exception\TimeoutException;
 use Broadcast\Exception\ValidationException;
 use Broadcast\Exception\WarningException;
 use Broadcast\Response;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 final class ConnectionTest extends TestCase
 {
@@ -198,7 +199,9 @@ final class ConnectionTest extends TestCase
         ];
     }
 
-    /** @dataProvider errorCases */
+    // Attribute rather than an @dataProvider doc-comment: metadata in
+    // doc-comments is deprecated in PHPUnit 11 and unsupported in 12.
+    #[DataProvider('errorCases')]
     public function testStatusCodesMapToTypedExceptions(int $status, string $class, string $default): void
     {
         $client = $this->client(['status' => $status, 'text' => 'not json']);

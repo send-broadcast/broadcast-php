@@ -35,6 +35,12 @@ autopilot, discovery, and the 20 migration/export operations.
 - Webhook HMAC-SHA256 verification with a 5-minute window and `hash_equals`
 - No credentials or subscriber emails in debug output
 
+### Verification
+Suite run on PHP 8.5.8 / PHPUnit 11.5.56: **112 tests, 316 assertions, 0
+failures**. The webhook signature was cross-checked against the Ruby, Node and
+Python SDKs — all four produce a byte-identical HMAC for the same payload,
+timestamp and secret.
+
 ### Notes
 - Booleans are serialised as `true`/`false` in query strings. PHP casts `true`
   to `"1"`, which Rails does not read as true.

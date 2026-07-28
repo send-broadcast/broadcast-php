@@ -6,19 +6,6 @@ platform. Works with any Broadcast instance — self-hosted or SaaS.
 Covers **104/104 API operations**, verified against the API's generated OpenAPI
 document.
 
-> ### ⚠️ Pre-release: the test suite has not been run
->
-> This client was written against the same contract as the Ruby, Node and
-> Python SDKs, and the 104/104 endpoint coverage is measured by tooling that
-> does not require PHP. But **no PHPUnit assertion has ever been executed** —
-> the machine it was written on had no `php` or `composer` binary.
->
-> A static pass confirms PSR-4 layout, balanced syntax and `strict_types`
-> across all 42 files. That is not the same as working code.
->
-> Run `composer install && composer test` before using this in production. If
-> the suite passes, delete this notice.
-
 ```bash
 composer require broadcast/broadcast-php
 ```
