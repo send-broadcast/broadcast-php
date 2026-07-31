@@ -8,11 +8,13 @@ use Broadcast\Resources\Autopilots;
 use Broadcast\Resources\Broadcasts;
 use Broadcast\Resources\Discovery;
 use Broadcast\Resources\EmailServers;
+use Broadcast\Resources\GlobalSuppressions;
 use Broadcast\Resources\Migration;
 use Broadcast\Resources\OptInForms;
 use Broadcast\Resources\Segments;
 use Broadcast\Resources\Sequences;
 use Broadcast\Resources\Subscribers;
+use Broadcast\Resources\Suppressions;
 use Broadcast\Resources\Templates;
 use Broadcast\Resources\Transactionals;
 use Broadcast\Resources\WebhookEndpoints;
@@ -47,6 +49,12 @@ final class Client
     public readonly Autopilots $autopilots;
     public readonly Discovery $discovery;
 
+    /** The current channel's suppression list (plus check(), which reads the global list too). */
+    public readonly Suppressions $suppressions;
+
+    /** The installation-wide suppression list. Requires an admin (system) API token. */
+    public readonly GlobalSuppressions $globalSuppressions;
+
     /** Read-only export endpoints. Requires an admin (system) API token. */
     public readonly Migration $migration;
 
@@ -68,6 +76,8 @@ final class Client
         $this->emailServers = new EmailServers($this);
         $this->autopilots = new Autopilots($this);
         $this->discovery = new Discovery($this);
+        $this->suppressions = new Suppressions($this);
+        $this->globalSuppressions = new GlobalSuppressions($this);
         $this->migration = new Migration($this);
     }
 

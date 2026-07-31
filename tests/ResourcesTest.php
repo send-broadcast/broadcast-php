@@ -605,4 +605,74 @@ final class ResourcesTest extends TestCase
         $client = $this->client();
         self::assertSame('returned', $client->withChannel(99, static fn () => 'returned'));
     }
+
+    public function testSuppressions(): void
+    {
+        $client = $this->client();
+
+        $client->suppressions->list(['page' => 2, 'email' => 'example.com']);
+        self::assertSame('/api/v1/suppressions.json', $this->http->last()['path']);
+        self::assertSame('2', $this->http->last()['query']['page']);
+        self::assertSame('example.com', $this->http->last()['query']['email']);
+
+        $client->suppressions->add('blocked@example.com');
+        self::assertSame('POST', $this->http->last()['method']);
+        self::assertSame('/api/v1/suppressions.json', $this->http->last()['path']);
+        self::assertSame(['email' => 'blocked@example.com'], $this->http->last()['body']);
+
+        $client->suppressions->remove('blocked@example.com');
+        self::assertSame('DELETE', $this->http->last()['method']);
+        self::assertSame('/api/v1/suppressions.json', $this->http->last()['path']);
+        self::assertSame(['email' => 'blocked@example.com'], $this->http->last()['body']);
+
+        $client->suppressions->bulkAdd(['a@example.com', 'b@example.com']);
+        self::assertSame('POST', $this->http->last()['method']);
+        self::assertSame('/api/v1/suppressions/bulk.json', $this->http->last()['path']);
+        self::assertSame(['emails' => ['a@example.com', 'b@example.com']], $this->http->last()['body']);
+
+        $client->suppressions->bulkRemove(['a@example.com']);
+        self::assertSame('DELETE', $this->http->last()['method']);
+        self::assertSame('/api/v1/suppressions/bulk.json', $this->http->last()['path']);
+        self::assertSame(['emails' => ['a@example.com']], $this->http->last()['body']);
+    }
+
+    public function testSuppressionsCheck(): void
+    {
+        $client = $this->client([
+            ['body' => ['email' => 'blocked@example.com', 'suppressed' => true, 'scope' => 'global']],
+        ]);
+
+        $result = $client->suppressions->check('blocked@example.com');
+        self::assertSame('GET', $this->http->last()['method']);
+        self::assertSame('/api/v1/suppressions/check.json', $this->http->last()['path']);
+        self::assertSame('blocked@example.com', $this->http->last()['query']['email']);
+        self::assertTrue($result['suppressed']);
+        self::assertSame('global', $result['scope']);
+    }
+
+    public function testGlobalSuppressions(): void
+    {
+        $client = $this->client();
+
+        $client->globalSuppressions->list();
+        self::assertSame('/api/v1/global_suppressions.json', $this->http->last()['path']);
+
+        $client->globalSuppressions->add('blocked@example.com');
+        self::assertSame('POST', $this->http->last()['method']);
+        self::assertSame('/api/v1/global_suppressions.json', $this->http->last()['path']);
+        self::assertSame(['email' => 'blocked@example.com'], $this->http->last()['body']);
+
+        $client->globalSuppressions->remove('blocked@example.com');
+        self::assertSame('DELETE', $this->http->last()['method']);
+        self::assertSame('/api/v1/global_suppressions.json', $this->http->last()['path']);
+
+        $client->globalSuppressions->bulkAdd(['a@example.com']);
+        self::assertSame('POST', $this->http->last()['method']);
+        self::assertSame('/api/v1/global_suppressions/bulk.json', $this->http->last()['path']);
+
+        $client->globalSuppressions->bulkRemove(['a@example.com']);
+        self::assertSame('DELETE', $this->http->last()['method']);
+        self::assertSame('/api/v1/global_suppressions/bulk.json', $this->http->last()['path']);
+        self::assertSame(['emails' => ['a@example.com']], $this->http->last()['body']);
+    }
 }
