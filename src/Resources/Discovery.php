@@ -41,4 +41,19 @@ final class Discovery extends BaseResource
     {
         return (string) $this->httpGet('/api/v1/skill', [], true);
     }
+
+    /**
+     * This installation's own OpenAPI document, as YAML. Returns a string —
+     * this endpoint serves application/yaml.
+     *
+     * The server URL inside the document is rewritten by the installation to
+     * the host that served it, so the result feeds a client generator or an API
+     * explorer without hand-editing. Preferable to a spec copied from
+     * elsewhere: a 2.28 install serves the 2.28 surface, so the document cannot
+     * drift from the routes it describes.
+     */
+    public function openapi(): string
+    {
+        return (string) $this->httpGet('/api/v1/openapi', [], true);
+    }
 }

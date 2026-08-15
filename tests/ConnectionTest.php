@@ -180,6 +180,16 @@ final class ConnectionTest extends TestCase
         self::assertSame('# Skill', $client->discovery->skill());
     }
 
+    public function testOpenapiReturnsTheYamlDocument(): void
+    {
+        $client = $this->client([
+            'status' => 200,
+            'text' => "openapi: 3.1.0\n",
+            'headers' => ['content-type' => 'application/yaml; charset=utf-8'],
+        ]);
+        self::assertSame("openapi: 3.1.0\n", $client->discovery->openapi());
+    }
+
     public function testRawReturnsBinaryIntact(): void
     {
         $png = "\x89PNG\r\n";

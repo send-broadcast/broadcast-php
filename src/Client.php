@@ -153,6 +153,11 @@ final class Client
         return $this->discovery->skill();
     }
 
+    public function openapi(): string
+    {
+        return $this->discovery->openapi();
+    }
+
     // --- Internal ---
 
     /**
