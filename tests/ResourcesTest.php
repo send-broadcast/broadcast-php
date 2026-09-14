@@ -675,4 +675,30 @@ final class ResourcesTest extends TestCase
         self::assertSame('/api/v1/global_suppressions/bulk.json', $this->http->last()['path']);
         self::assertSame(['emails' => ['a@example.com']], $this->http->last()['body']);
     }
+
+    public function testChannelDesignReadsTheResolvedBrandKit(): void
+    {
+        $client = $this->client([
+            ['body' => [
+                'colors' => ['accent' => '#2563eb', 'text' => '#18181b'],
+                'typography' => ['font' => 'georgia', 'font_stack' => 'Georgia, serif'],
+                'layout' => ['width' => 600, 'radius' => 8],
+                'brand' => [
+                    'logo_url' => null,
+                    'logo_width' => 180,
+                    'website_url' => 'https://acme.example',
+                    'social_links' => [['network' => 'x', 'url' => 'https://x.com/acme']],
+                    'social_icon_style' => 'dark',
+                ],
+            ]],
+        ]);
+
+        $design = $client->channelDesign->get();
+        self::assertSame('GET', $this->http->last()['method']);
+        self::assertSame('/api/v1/channel/design', $this->http->last()['path']);
+        self::assertSame([], $this->http->last()['query']);
+        self::assertSame('#2563eb', $design['colors']['accent']);
+        self::assertSame(600, $design['layout']['width']);
+        self::assertNull($design['brand']['logo_url']);
+    }
 }

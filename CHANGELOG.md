@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+- `$client->channelDesign->get()` for `GET /api/v1/channel/design`: the
+  token's channel brand kit, fully resolved. Read-only; needs `templates_read`.
+
 ## [0.2.0] - 2026-07-28
 
 A minor rather than a patch bump: `Response` now rejects an operation it

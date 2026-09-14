@@ -216,6 +216,19 @@ $client->optInForms->duplicate($id, 'Copy');
 
 Reading a segment recounts its members server-side, so `segments->get` is not free.
 
+### Channel design (brand kit)
+
+```php
+$design = $client->channelDesign->get();
+$design['colors']['accent'];          // '#2563eb'
+$design['typography']['font_stack'];  // email-safe font stack
+$design['brand']['logo_url'];         // public URL, or null
+```
+
+Read-only, fully resolved (defaults filled in), and always the token's own
+channel. Needs `templates_read`. Block emails built with the drag-and-drop
+editor inherit these values.
+
 ### Email servers
 
 **Credential redaction guard.** The API returns credentials bullet-masked
@@ -365,7 +378,7 @@ integration requires.
 | Sequences | `sequences_read` -- list, get, list steps | `sequences_write` -- create, update, delete, manage steps, enroll subscribers |
 | Broadcasts | `broadcasts_read` -- list, get, statistics | `broadcasts_write` -- create, update, delete, send, schedule |
 | Segments | `segments_read` -- list, get | `segments_write` -- create, update, delete |
-| Templates | `templates_read` -- list, get | `templates_write` -- create, update, delete |
+| Templates | `templates_read` -- list, get, channel design | `templates_write` -- create, update, delete |
 | Opt-In Forms | `opt_in_forms_read` -- list, get, analytics | `opt_in_forms_write` -- create, update, delete, create_variant, duplicate |
 | Email Servers | `email_servers_read` -- list, get | `email_servers_write` -- create, update, delete, test_connection, copy_to_channel (admin) |
 | Webhook Endpoints | `webhook_endpoints_read` -- list, get, deliveries | `webhook_endpoints_write` -- create, update, delete, test |
