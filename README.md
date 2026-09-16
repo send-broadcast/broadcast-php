@@ -317,7 +317,7 @@ mutating one returns 403 — and sudo can never be granted.
 
 ```php
 $client->users->list(['q' => 'ada', 'status' => 'active']);
-$user = $client->users->create(['email' => 'ada@example.com', 'send_password_reset' => true]);
+$user = $client->users->create(['email' => 'ada@example.com', 'first_name' => 'Ada', 'last_name' => 'Lovelace', 'send_password_reset' => true]);
 $client->users->update($user['id'], ['first_name' => 'Ada']);
 $client->users->deactivate($user['id']);
 $client->users->activate($user['id']);

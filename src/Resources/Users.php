@@ -29,7 +29,7 @@ final class Users extends BaseResource
     }
 
     /**
-     * @param array{email: string, first_name?: string, last_name?: string, password?: string, send_password_reset?: bool} $attrs
+     * @param array{email: string, first_name: string, last_name: string, password?: string, send_password_reset?: bool} $attrs
      *        One of `password` or `send_password_reset: true` is required.
      */
     public function create(array $attrs): mixed
