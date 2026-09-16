@@ -701,4 +701,200 @@ final class ResourcesTest extends TestCase
         self::assertSame(600, $design['layout']['width']);
         self::assertNull($design['brand']['logo_url']);
     }
+
+    // --- Users ---------------------------------------------------------------
+
+    public function testUsersIsExposedOnTheClient(): void
+    {
+        $client = $this->client();
+        self::assertInstanceOf(\Broadcast\Resources\Users::class, $client->users);
+    }
+
+    public function testUsersList(): void
+    {
+        $client = $this->client();
+
+        $client->users->list(['limit' => 10, 'offset' => 5, 'q' => 'ada', 'status' => 'active']);
+        self::assertSame('GET', $this->http->last()['method']);
+        self::assertSame('/api/v1/users', $this->http->last()['path']);
+        self::assertSame(
+            ['limit' => '10', 'offset' => '5', 'q' => 'ada', 'status' => 'active'],
+            $this->http->last()['query']
+        );
+    }
+
+    public function testUsersListOmitsNulls(): void
+    {
+        $client = $this->client();
+
+        $client->users->list();
+        self::assertSame('GET', $this->http->last()['method']);
+        self::assertSame('/api/v1/users', $this->http->last()['path']);
+        self::assertSame([], $this->http->last()['query']);
+    }
+
+    public function testUsersGet(): void
+    {
+        $client = $this->client();
+
+        $client->users->get(7);
+        self::assertSame('GET', $this->http->last()['method']);
+        self::assertSame('/api/v1/users/7', $this->http->last()['path']);
+    }
+
+    public function testUsersCreate(): void
+    {
+        $client = $this->client();
+
+        $client->users->create(['email' => 'ada@example.com', 'first_name' => 'Ada', 'last_name' => 'Lovelace']);
+        self::assertSame('POST', $this->http->last()['method']);
+        self::assertSame('/api/v1/users', $this->http->last()['path']);
+        self::assertSame(
+            ['user' => ['email' => 'ada@example.com', 'first_name' => 'Ada', 'last_name' => 'Lovelace']],
+            $this->http->last()['body']
+        );
+    }
+
+    public function testUsersUpdate(): void
+    {
+        $client = $this->client();
+
+        $client->users->update(7, ['first_name' => 'Renamed']);
+        self::assertSame('PATCH', $this->http->last()['method']);
+        self::assertSame('/api/v1/users/7', $this->http->last()['path']);
+        self::assertSame(['user' => ['first_name' => 'Renamed']], $this->http->last()['body']);
+    }
+
+    public function testUsersDeactivateActivateDelete(): void
+    {
+        $client = $this->client();
+
+        $client->users->deactivate(7);
+        self::assertSame('POST', $this->http->last()['method']);
+        self::assertSame('/api/v1/users/7/deactivate', $this->http->last()['path']);
+
+        $client->users->activate(7);
+        self::assertSame('POST', $this->http->last()['method']);
+        self::assertSame('/api/v1/users/7/activate', $this->http->last()['path']);
+
+        $client->users->delete(7);
+        self::assertSame('DELETE', $this->http->last()['method']);
+        self::assertSame('/api/v1/users/7', $this->http->last()['path']);
+    }
+
+    public function testUsersChannelPermissions(): void
+    {
+        $client = $this->client();
+
+        $client->users->channelPermissions(7);
+        self::assertSame('GET', $this->http->last()['method']);
+        self::assertSame('/api/v1/users/7/channel_permissions', $this->http->last()['path']);
+    }
+
+    public function testUsersSetChannelPermissionsWithPermissions(): void
+    {
+        $client = $this->client();
+
+        $client->users->setChannelPermissions(7, 3, ['permissions' => ['subscribers_read' => true]]);
+        self::assertSame('PUT', $this->http->last()['method']);
+        self::assertSame('/api/v1/users/7/channel_permissions/3', $this->http->last()['path']);
+        self::assertSame(['permissions' => ['subscribers_read' => true]], $this->http->last()['body']);
+    }
+
+    public function testUsersSetChannelPermissionsWithRole(): void
+    {
+        $client = $this->client();
+
+        $client->users->setChannelPermissions(7, 3, ['role' => 'Viewer']);
+        self::assertSame('PUT', $this->http->last()['method']);
+        self::assertSame(['role' => 'Viewer'], $this->http->last()['body']);
+    }
+
+    public function testUsersSetChannelPermissionsWithPresetId(): void
+    {
+        $client = $this->client();
+
+        $client->users->setChannelPermissions(7, 3, ['preset_id' => 12]);
+        self::assertSame(['preset_id' => 12], $this->http->last()['body']);
+    }
+
+    public function testUsersSetChannelPermissionsRejectsZeroKeys(): void
+    {
+        $client = $this->client();
+
+        try {
+            $client->users->setChannelPermissions(7, 3, []);
+            self::fail('expected InvalidArgumentException');
+        } catch (\InvalidArgumentException $e) {
+            self::assertMatchesRegularExpression('/exactly one of/', $e->getMessage());
+        }
+        self::assertCount(0, $this->http->calls, 'must not have issued the request');
+    }
+
+    public function testUsersSetChannelPermissionsRejectsMultipleKeys(): void
+    {
+        $client = $this->client();
+
+        try {
+            $client->users->setChannelPermissions(7, 3, ['role' => 'Viewer', 'preset_id' => 12]);
+            self::fail('expected InvalidArgumentException');
+        } catch (\InvalidArgumentException $e) {
+            self::assertMatchesRegularExpression('/exactly one of/', $e->getMessage());
+        }
+        self::assertCount(0, $this->http->calls, 'must not have issued the request');
+    }
+
+    public function testUsersRemoveChannelPermissions(): void
+    {
+        $client = $this->client();
+
+        $client->users->removeChannelPermissions(7, 3);
+        self::assertSame('DELETE', $this->http->last()['method']);
+        self::assertSame('/api/v1/users/7/channel_permissions/3', $this->http->last()['path']);
+    }
+
+    public function testUsersBulkChannelPermissions(): void
+    {
+        $client = $this->client();
+
+        $client->users->bulkChannelPermissions(7, [1, 2], ['role' => 'Editor']);
+        self::assertSame('POST', $this->http->last()['method']);
+        self::assertSame('/api/v1/users/7/channel_permissions/bulk', $this->http->last()['path']);
+        self::assertSame(
+            ['broadcast_channel_ids' => [1, 2], 'role' => 'Editor'],
+            $this->http->last()['body']
+        );
+    }
+
+    public function testUsersBulkChannelPermissionsRejectsZeroKeys(): void
+    {
+        $client = $this->client();
+
+        try {
+            $client->users->bulkChannelPermissions(7, [1, 2], []);
+            self::fail('expected InvalidArgumentException');
+        } catch (\InvalidArgumentException $e) {
+            self::assertMatchesRegularExpression('/exactly one of/', $e->getMessage());
+        }
+        self::assertCount(0, $this->http->calls, 'must not have issued the request');
+    }
+
+    public function testUsersSystemPermissions(): void
+    {
+        $client = $this->client();
+
+        $client->users->systemPermissions(7);
+        self::assertSame('GET', $this->http->last()['method']);
+        self::assertSame('/api/v1/users/7/system_permissions', $this->http->last()['path']);
+    }
+
+    public function testUsersUpdateSystemPermissions(): void
+    {
+        $client = $this->client();
+
+        $client->users->updateSystemPermissions(7, ['user_management' => true]);
+        self::assertSame('PATCH', $this->http->last()['method']);
+        self::assertSame('/api/v1/users/7/system_permissions', $this->http->last()['path']);
+        self::assertSame(['permissions' => ['user_management' => true]], $this->http->last()['body']);
+    }
 }

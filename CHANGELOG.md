@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- `$client->users` — user management (list/get/create/update/deactivate/
+  activate/delete), channel permissions (`channelPermissions`,
+  `setChannelPermissions`, `removeChannelPermissions`,
+  `bulkChannelPermissions`), and system permissions (`systemPermissions`,
+  `updateSystemPermissions`). All operations require an admin (system) API
+  token; sudo users are read-only and sudo can never be granted.
+  `setChannelPermissions`/`bulkChannelPermissions` require exactly one of
+  `permissions`, `role`, or `preset_id`, throwing `InvalidArgumentException`
+  otherwise.
+- `BaseResource::httpPut()`, for the channel-permissions replace-the-record
+  endpoint.
 - `$client->channelDesign->get()` for `GET /api/v1/channel/design`: the
   token's channel brand kit, fully resolved. Read-only; needs `templates_read`.
 

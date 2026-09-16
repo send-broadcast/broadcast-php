@@ -18,6 +18,7 @@ use Broadcast\Resources\Subscribers;
 use Broadcast\Resources\Suppressions;
 use Broadcast\Resources\Templates;
 use Broadcast\Resources\Transactionals;
+use Broadcast\Resources\Users;
 use Broadcast\Resources\WebhookEndpoints;
 
 /**
@@ -62,6 +63,9 @@ final class Client
     /** Read-only export endpoints. Requires an admin (system) API token. */
     public readonly Migration $migration;
 
+    /** User management. Requires an admin (system) API token. */
+    public readonly Users $users;
+
     /** @param array<string,mixed> $options */
     public function __construct(array $options = [])
     {
@@ -84,6 +88,7 @@ final class Client
         $this->suppressions = new Suppressions($this);
         $this->globalSuppressions = new GlobalSuppressions($this);
         $this->migration = new Migration($this);
+        $this->users = new Users($this);
     }
 
     // --- Channel scoping (admin/system tokens) ---

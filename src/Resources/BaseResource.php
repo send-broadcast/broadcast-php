@@ -48,6 +48,15 @@ abstract class BaseResource
 
     /**
      * @param non-empty-string $path
+     * @param array<string,mixed> $body
+     */
+    protected function httpPut(string $path, array $body = []): mixed
+    {
+        return $this->client->request('PUT', $path, $body);
+    }
+
+    /**
+     * @param non-empty-string $path
      * @param array<string,mixed>|null $body
      */
     protected function httpDelete(string $path, ?array $body = null): mixed

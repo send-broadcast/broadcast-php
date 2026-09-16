@@ -309,6 +309,40 @@ On a demo instance this entire API returns **403 for every request**, valid
 token or not — deliberately, so a public demo cannot be used as a token oracle.
 It surfaces as `AuthorizationException`.
 
+### Users
+
+**Admin tokens only**, further scoped by `users_read` / `users_write`. No
+`broadcast_channel_id` is needed. Sudo users are read-only through this API —
+mutating one returns 403 — and sudo can never be granted.
+
+```php
+$client->users->list(['q' => 'ada', 'status' => 'active']);
+$user = $client->users->create(['email' => 'ada@example.com', 'send_password_reset' => true]);
+$client->users->update($user['id'], ['first_name' => 'Ada']);
+$client->users->deactivate($user['id']);
+$client->users->activate($user['id']);
+```
+
+Channel permissions. A `PUT` **replaces the whole channel record** — unlisted
+permission flags become `false`. Pass exactly one of `permissions`, `role`, or
+`preset_id`; anything else throws `InvalidArgumentException` before the
+request is sent.
+
+```php
+$client->users->channelPermissions($user['id']);
+$client->users->setChannelPermissions($user['id'], $channelId, ['role' => 'Editor']);
+$client->users->removeChannelPermissions($user['id'], $channelId);
+$client->users->bulkChannelPermissions($user['id'], [1, 2, 3], ['preset_id' => 12]);
+```
+
+System permissions. `PATCH` changes only the flags named; `sudo_access` can
+never be set here.
+
+```php
+$client->users->systemPermissions($user['id']);
+$client->users->updateSystemPermissions($user['id'], ['user_management' => true]);
+```
+
 ---
 
 ## Channel Scoping
