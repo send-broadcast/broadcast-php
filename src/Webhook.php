@@ -33,6 +33,9 @@ final class Webhook
         'subscriber.unsubscribed',
         'subscriber.bounced',
         'subscriber.complained',
+        // One event for a whole-list purge, in place of a subscriber.deleted per row
+        'subscribers.purged',
+        'subscribers.purge_failed',
     ];
 
     public const BROADCAST_EVENTS = [

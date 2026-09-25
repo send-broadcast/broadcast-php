@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- `subscribers.purged` and `subscribers.purge_failed` webhook event types, in
+  `Webhook::SUBSCRIBER_EVENTS` and `Webhook::eventTypes()` (now 34). A purge of
+  the whole list sends one of these instead of a `subscriber.deleted` per
+  subscriber.
 - `$client->users` — user management (list/get/create/update/deactivate/
   activate/delete), channel permissions (`channelPermissions`,
   `setChannelPermissions`, `removeChannelPermissions`,
