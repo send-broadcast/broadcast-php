@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.1] - 2026-09-25
+
+No code changes. Packagist had recorded an earlier commit for 0.3.0, so this
+release publishes the same code under the current commit.
+
 ## [0.3.0] - 2026-09-25
 
 ### Added
