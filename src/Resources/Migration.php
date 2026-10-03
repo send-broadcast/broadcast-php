@@ -33,6 +33,7 @@ namespace Broadcast\Resources;
  * @method mixed webhookEndpoints(array $params = [])
  * @method mixed tokens(array $params = [])
  * @method mixed suppressions(array $params = [])
+ * @method mixed unsubscribedEmails(array $params = [])
  * @method mixed tags(array $params = [])
  * @method mixed users(array $params = [])
  * @method mixed linkRedirects(array $params = [])
@@ -43,7 +44,7 @@ namespace Broadcast\Resources;
 final class Migration extends BaseResource
 {
     /**
-     * Method name => path segment. Generated rather than hand-written: 18
+     * Method name => path segment. Generated rather than hand-written: 19
      * near-identical methods invite exactly the copy-paste drift this SDK
      * family exists to prevent. Declared in .api-coverage.yml so the coverage
      * report still counts them.
@@ -63,6 +64,7 @@ final class Migration extends BaseResource
         'webhookEndpoints' => 'webhook_endpoints',
         'tokens' => 'tokens',
         'suppressions' => 'suppressions',
+        'unsubscribedEmails' => 'unsubscribed_emails',
         'tags' => 'tags',
         'users' => 'users',
         'linkRedirects' => 'link_redirects',

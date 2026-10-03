@@ -49,13 +49,13 @@ final class PackageTest extends BaseTestCase
         }
     }
 
-    public function testMigrationDeclaresEighteenCollections(): void
+    public function testMigrationDeclaresNineteenCollections(): void
     {
-        self::assertCount(18, Migration::COLLECTIONS);
+        self::assertCount(19, Migration::COLLECTIONS);
     }
 
     /**
-     * The 18 migration endpoints are generated through __call, so no path
+     * The 19 migration endpoints are generated through __call, so no path
      * literal exists for the coverage scanner to find. They are declared in
      * .api-coverage.yml instead — which means that file is a hand-maintained
      * promise, and a promise nothing checks is one that drifts.

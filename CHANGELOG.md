@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+
+- `$client->migration->unsubscribedEmails()` for
+  `GET /api/migration/v1/unsubscribed_emails`, the channel's own suppression
+  list; `eachRecord('unsubscribedEmails')` pages it. `suppressions` returns only
+  the global suppression list, so an export needs both.
+
 ## [0.3.1] - 2026-09-25
 
 No code changes. Packagist had recorded an earlier commit for 0.3.0, so this

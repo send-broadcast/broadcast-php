@@ -302,6 +302,12 @@ foreach ($client->migration->eachRecord('subscribers') as $sub) {
     // auto-pages; advances by the limit the server actually applied
 }
 
+// Suppressed addresses live in two lists; export both:
+// suppressions = global suppression list, unsubscribedEmails = the channel's own
+foreach ($client->migration->eachRecord('unsubscribedEmails') as $row) {
+    // ['id', 'email', 'broadcast_channel_id', 'created_at', 'updated_at']
+}
+
 $bytes = $client->migration->downloadFileAsset($id);
 ```
 

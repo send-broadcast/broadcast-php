@@ -480,7 +480,7 @@ final class ResourcesTest extends TestCase
 
     // --- Migration ----------------------------------------------------------
 
-    public function testAllEighteenCollections(): void
+    public function testAllNineteenCollections(): void
     {
         $client = $this->client(['body' => ['data' => [], 'pagination' => ['has_more' => false]]]);
 
@@ -503,6 +503,25 @@ final class ResourcesTest extends TestCase
         $client->migration->manifest(['days_history' => 30]);
         self::assertSame('/api/migration/v1/manifest', $this->http->last()['path']);
         self::assertSame('30', $this->http->last()['query']['days_history']);
+    }
+
+    // The channel suppression list (UnsubscribedEmail), separate from
+    // suppressions. Without it an export silently dropped the list.
+    public function testEachRecordPagesThroughUnsubscribedEmails(): void
+    {
+        $client = $this->client([
+            ['body' => ['data' => [['email' => 'gone@example.com']], 'pagination' => ['has_more' => true, 'limit' => 1]]],
+            ['body' => ['data' => [['email' => 'left@example.com']], 'pagination' => ['has_more' => false, 'limit' => 1]]],
+        ]);
+
+        $emails = [];
+        foreach ($client->migration->eachRecord('unsubscribedEmails', 1) as $record) {
+            $emails[] = $record['email'];
+        }
+
+        self::assertSame(['gone@example.com', 'left@example.com'], $emails);
+        self::assertSame('/api/migration/v1/unsubscribed_emails', $this->http->calls[0]['path']);
+        self::assertSame('1', $this->http->calls[1]['query']['offset']);
     }
 
     public function testEachRecordPagesUntilHasMoreIsFalse(): void
