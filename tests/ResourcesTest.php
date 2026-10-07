@@ -317,6 +317,34 @@ final class ResourcesTest extends TestCase
         self::assertSame('2026-01-01T00:00:00+00:00', $this->http->last()['query']['start_date']);
     }
 
+    public function testTriggerFrequencies(): void
+    {
+        self::assertSame(
+            ['always', 'every_visit', 'once_per_session', 'once_per_day', 'once_per_week', 'once'],
+            \Broadcast\Resources\OptInForms::TRIGGER_FREQUENCIES
+        );
+    }
+
+    // The server decides which words it accepts; the client sends what it is
+    // given, so an older server is never refused a word it would take.
+    public function testTriggerSettingsPassThroughVerbatim(): void
+    {
+        $client = $this->client();
+        $client->optInForms->update(6, ['trigger_settings' => ['frequency' => 'weekly']]);
+        self::assertSame(['opt_in_form' => ['trigger_settings' => ['frequency' => 'weekly']]], $this->http->last()['body']);
+    }
+
+    public function testUnknownFrequencyThrowsValidationException(): void
+    {
+        $message = 'Trigger settings frequency "weekly" is not known. '
+            . 'Use one of: always, every_visit, once_per_session, once_per_day, once_per_week, once';
+        $client = $this->client(['status' => 422, 'body' => ['error' => $message]]);
+
+        $this->expectException(\Broadcast\Exception\ValidationException::class);
+        $this->expectExceptionMessage('"weekly" is not known');
+        $client->optInForms->update(6, ['trigger_settings' => ['frequency' => 'weekly']]);
+    }
+
     // --- Email servers ------------------------------------------------------
 
     public function testEmailServers(): void

@@ -7,6 +7,21 @@ namespace Broadcast\Resources;
 final class OptInForms extends BaseResource
 {
     /**
+     * The words trigger_settings['frequency'] accepts: how often the same
+     * visitor sees a popup. always and every_visit mean the same. The server
+     * refuses any other word with 422 (ValidationException); the client does
+     * not check, so an older server is never refused a word it would take.
+     */
+    public const TRIGGER_FREQUENCIES = [
+        'always',
+        'every_visit',
+        'once_per_session',
+        'once_per_day',
+        'once_per_week',
+        'once',
+    ];
+
+    /**
      * Up to 250 per page with `pagination` metadata. Variants are excluded.
      *
      * Optional filters: filter (label substring), widget_type, enabled.
@@ -27,6 +42,8 @@ final class OptInForms extends BaseResource
      * Attributes are wrapped under `opt_in_form:`. Nested settings arrays
      * (theme_settings, automation_settings, security_settings, trigger_settings,
      * widget_settings) and the block arrays are passed through verbatim.
+     * trigger_settings['frequency'] must be one of TRIGGER_FREQUENCIES; any
+     * other word throws ValidationException (422).
      *
      * @param array<string,mixed> $attrs
      */

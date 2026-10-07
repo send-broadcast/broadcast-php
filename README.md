@@ -210,6 +210,8 @@ $client->sequences->moveStep($id, $stepId, $underId);
 $client->segments->create(['name' => 'VIPs']);
 $client->templates->create(['label' => 'Welcome', 'subject' => 'Hi']);
 $client->optInForms->analytics($id, new DateTimeImmutable('2026-01-01'));
+// How often the same visitor sees a popup: one of OptInForms::TRIGGER_FREQUENCIES, or ValidationException (422).
+$client->optInForms->update($id, ['trigger_settings' => ['frequency' => 'once_per_day']]);
 $client->optInForms->createVariant($id, 'B', 50);
 $client->optInForms->duplicate($id, 'Copy');
 ```
