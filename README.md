@@ -412,7 +412,7 @@ every rejection rather than distinguishing them.
 Pass the **raw** request body (`file_get_contents('php://input')`). Re-encoding
 a decoded array changes the bytes and verification will fail.
 
-`Webhook::eventTypes()` lists all 34 event names. `Webhook::SUBSCRIBER_EVENTS`
+`Webhook::eventTypes()` lists all 35 event names. `Webhook::SUBSCRIBER_EVENTS`
 includes `subscribers.purged` and `subscribers.purge_failed`: a purge of the
 whole list sends one of these instead of a `subscriber.deleted` per subscriber.
 
