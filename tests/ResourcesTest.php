@@ -219,6 +219,44 @@ final class ResourcesTest extends TestCase
         self::assertSame('DELETE', $this->http->last()['method']);
     }
 
+    // --- Topics -----------------------------------------------------------------
+
+    public function testTopics(): void
+    {
+        $client = $this->client();
+
+        $client->topics->list();
+        self::assertSame('/api/v1/topics.json', $this->http->last()['path']);
+
+        $client->topics->get(3);
+        self::assertSame('/api/v1/topics/3.json', $this->http->last()['path']);
+
+        $client->topics->create(['name' => 'Webinars', 'custom_data_key' => 'sub_webinars']);
+        self::assertSame(['POST', '/api/v1/topics'], [$this->http->last()['method'], $this->http->last()['path']]);
+        self::assertSame(['topic' => ['name' => 'Webinars', 'custom_data_key' => 'sub_webinars']], $this->http->last()['body']);
+
+        $client->topics->update(3, ['unset_receives' => true]);
+        self::assertSame(['PATCH', '/api/v1/topics/3'], [$this->http->last()['method'], $this->http->last()['path']]);
+        self::assertSame(['topic' => ['unset_receives' => true]], $this->http->last()['body']);
+
+        $client->topics->delete(3);
+        self::assertSame(['DELETE', '/api/v1/topics/3'], [$this->http->last()['method'], $this->http->last()['path']]);
+    }
+
+    public function testSubscriberUpdateCustomDataMode(): void
+    {
+        $client = $this->client();
+
+        $client->subscribers->update('a@b.com', ['custom_data' => ['sub_offers' => false]], 'merge');
+        self::assertSame(
+            ['email' => 'a@b.com', 'subscriber' => ['custom_data' => ['sub_offers' => false]], 'custom_data_mode' => 'merge'],
+            $this->http->last()['body']
+        );
+
+        $client->subscribers->update('a@b.com', ['first_name' => 'Grace']);
+        self::assertSame(['email' => 'a@b.com', 'subscriber' => ['first_name' => 'Grace']], $this->http->last()['body']);
+    }
+
     // --- Segments, templates, forms -----------------------------------------
 
     public function testSegments(): void

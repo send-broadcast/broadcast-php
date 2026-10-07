@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- `$client->topics` for `/api/v1/topics` (subscriber topics): `list`, `get`,
+  `create`, `update`, `delete`. Topics use the subscriber permissions.
+  Broadcasts and sequences accept `topic_id`.
+- `$client->subscribers->update($email, $attrs, 'merge')`: change only the
+  custom_data keys sent; `null` deletes a key. The default stays replace.
+- `subscriber.preferences_updated` webhook event type, in
+  `Webhook::SUBSCRIBER_EVENTS` and `Webhook::eventTypes()` (now 35).
+
 ## [0.4.0] - 2026-10-03
 
 ### Added

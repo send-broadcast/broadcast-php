@@ -13,6 +13,7 @@ use Broadcast\Resources\GlobalSuppressions;
 use Broadcast\Resources\Migration;
 use Broadcast\Resources\OptInForms;
 use Broadcast\Resources\Segments;
+use Broadcast\Resources\Topics;
 use Broadcast\Resources\Sequences;
 use Broadcast\Resources\Subscribers;
 use Broadcast\Resources\Suppressions;
@@ -43,6 +44,7 @@ final class Client
     public readonly Sequences $sequences;
     public readonly Broadcasts $broadcasts;
     public readonly Segments $segments;
+    public readonly Topics $topics;
     public readonly Templates $templates;
     public readonly WebhookEndpoints $webhookEndpoints;
     public readonly Transactionals $transactionals;
@@ -77,6 +79,7 @@ final class Client
         $this->sequences = new Sequences($this);
         $this->broadcasts = new Broadcasts($this);
         $this->segments = new Segments($this);
+        $this->topics = new Topics($this);
         $this->templates = new Templates($this);
         $this->webhookEndpoints = new WebhookEndpoints($this);
         $this->transactionals = new Transactionals($this);

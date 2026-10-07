@@ -216,6 +216,32 @@ $client->optInForms->duplicate($id, 'Copy');
 
 Reading a segment recounts its members server-side, so `segments->get` is not free.
 
+### Topics
+
+A topic is one kind of email subscribers opt in to or out of (webinars, offers).
+Its value lives in a top-level `custom_data` key (`true`, `false`, or no value)
+or in a tag. `unset_receives` decides, at send time, whether a subscriber with no
+value receives it; Broadcast never writes a default. Topics use the subscriber
+permissions.
+
+```php
+$topic = $client->topics->create(['name' => 'Webinars', 'custom_data_key' => 'sub_webinars']);
+$client->topics->create(['name' => 'News', 'storage' => 'tag', 'tag_name' => 'news']);
+$client->topics->list();
+$client->topics->update($topic['id'], ['unset_receives' => false]);
+$client->topics->delete($topic['id']); // 422 while a broadcast or sequence uses it
+
+// Send to a topic: (segments) AND topic
+$client->broadcasts->create(['subject' => 'Webinar', 'body' => '...', 'segment_ids' => [2], 'topic_id' => $topic['id']]);
+
+// Change only the keys you send (null deletes a key); the default replaces custom_data
+$client->subscribers->update('jane@example.com', ['custom_data' => ['sub_webinars' => false]], 'merge');
+```
+
+The subscriber JSON has `topics`: each topic's stored value (`true`, `false`, or
+`null`). Topic changes fire `subscriber.preferences_updated` as well as
+`subscriber.updated`.
+
 ### Channel design (brand kit)
 
 ```php

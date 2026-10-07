@@ -60,9 +60,16 @@ final class Subscribers extends BaseResource
     }
 
     /** @param array<string,mixed> $attrs */
-    public function update(string $email, array $attrs): mixed
+    public function update(string $email, array $attrs, ?string $customDataMode = null): mixed
     {
-        return $this->httpPatch('/api/v1/subscribers.json', ['email' => $email, 'subscriber' => $attrs]);
+        // 'replace' (the API default) stores custom_data as sent; 'merge' changes
+        // only the keys sent, and a null value deletes that key.
+        $payload = ['email' => $email, 'subscriber' => $attrs];
+        if ($customDataMode !== null) {
+            $payload['custom_data_mode'] = $customDataMode;
+        }
+
+        return $this->httpPatch('/api/v1/subscribers.json', $payload);
     }
 
     /** @param list<string> $tags */

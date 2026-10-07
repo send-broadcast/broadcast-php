@@ -41,7 +41,7 @@ final class PackageTest extends BaseTestCase
         $client = new Client(['apiToken' => 't', 'host' => 'https://mail.example.com']);
 
         foreach ([
-            'subscribers', 'sequences', 'broadcasts', 'segments', 'templates',
+            'subscribers', 'sequences', 'broadcasts', 'segments', 'topics', 'templates',
             'webhookEndpoints', 'transactionals', 'optInForms', 'emailServers',
             'autopilots', 'discovery', 'migration',
         ] as $name) {
