@@ -67,6 +67,17 @@ final class ResourcesTest extends TestCase
         );
     }
 
+    public function testSubscribersCreateKeepsUnsubscribedAtInsideSubscriber(): void
+    {
+        $client = $this->client();
+        $client->subscribers->create(['email' => 'gone@b.com', 'unsubscribed_at' => '2025-03-14T09:30:00Z']);
+
+        self::assertSame(
+            ['subscriber' => ['email' => 'gone@b.com', 'unsubscribed_at' => '2025-03-14T09:30:00Z']],
+            $this->http->last()['body']
+        );
+    }
+
     public function testSubscribersCreateLiftsDoubleOptInToTopLevel(): void
     {
         $client = $this->client();

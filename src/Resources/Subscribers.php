@@ -38,7 +38,11 @@ final class Subscribers extends BaseResource
      * confirmed_at is admin-token only — it backdates the confirmation
      * timestamp when migrating an already-confirmed list off another provider.
      *
-     * unsubscribed_at is never settable here; use unsubscribe().
+     * unsubscribed_at (any token, create only, ISO 8601) stores the subscriber
+     * as unsubscribed in the same request, for migrating a list with its
+     * opt-outs intact: no confirmation email, 422 if it is in the future or
+     * sent with is_active true. To unsubscribe an existing subscriber, use
+     * unsubscribe().
      *
      * @param array<string,mixed> $attrs
      */
