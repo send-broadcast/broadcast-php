@@ -112,13 +112,13 @@ final class WebhookTest extends BaseTestCase
 
     public function testEventTypeCounts(): void
     {
-        self::assertCount(8, Webhook::EMAIL_EVENTS);
+        self::assertCount(9, Webhook::EMAIL_EVENTS);
         self::assertCount(10, Webhook::SUBSCRIBER_EVENTS);
         self::assertContains('subscriber.preferences_updated', Webhook::SUBSCRIBER_EVENTS);
-        self::assertCount(8, Webhook::BROADCAST_EVENTS);
+        self::assertCount(9, Webhook::BROADCAST_EVENTS);
         self::assertCount(7, Webhook::SEQUENCE_EVENTS);
         self::assertCount(2, Webhook::SYSTEM_EVENTS);
-        self::assertCount(35, Webhook::eventTypes());
+        self::assertCount(37, Webhook::eventTypes());
     }
 
     public function testEventTypesHaveNoDuplicates(): void
@@ -131,6 +131,8 @@ final class WebhookTest extends BaseTestCase
     {
         foreach ([
             'email.delivery_delayed',
+            'email.send_delayed',
+            'broadcast.batch_completed',
             'broadcast.partial_failure',
             'sequence.subscriber_completed',
             'message.attempt.exhausted',

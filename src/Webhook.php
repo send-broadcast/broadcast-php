@@ -18,6 +18,7 @@ final class Webhook
         'email.sent',
         'email.delivered',
         'email.delivery_delayed',
+        'email.send_delayed',
         'email.complained',
         'email.bounced',
         'email.opened',
@@ -48,6 +49,7 @@ final class Webhook
         'broadcast.partial_failure',
         'broadcast.aborted',
         'broadcast.paused',
+        'broadcast.batch_completed',
     ];
 
     public const SEQUENCE_EVENTS = [
