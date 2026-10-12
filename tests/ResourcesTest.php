@@ -798,6 +798,57 @@ final class ResourcesTest extends TestCase
         self::assertNull($design['brand']['logo_url']);
     }
 
+    // Broadcast 2.46.0: the brand kit is writable, partial, under channel_design.
+    public function testChannelDesignUpdateSendsAPartialKitAndExposesWarnings(): void
+    {
+        $client = $this->client([
+            ['body' => [
+                'colors' => ['accent' => '#ff5500'],
+                'warnings' => [['code' => 'unrecognized_parameter', 'param' => 'channel_design.layout.width', 'message' => 'read-only']],
+            ]],
+        ]);
+
+        $kit = $client->channelDesign->update(['colors' => ['accent' => '#ff5500'], 'brand' => ['logo_url' => null]]);
+        self::assertSame('PATCH', $this->http->last()['method']);
+        self::assertSame('/api/v1/channel/design', $this->http->last()['path']);
+        self::assertSame(
+            ['channel_design' => ['colors' => ['accent' => '#ff5500'], 'brand' => ['logo_url' => null]]],
+            $this->http->last()['body']
+        );
+        self::assertSame('#ff5500', $kit['colors']['accent']);
+        self::assertSame('channel_design.layout.width', $kit->warnings()[0]->param);
+    }
+
+    // --- Channel settings (Broadcast 2.46.0) ------------------------------------
+
+    public function testChannelSettingsGetReadsTheSettings(): void
+    {
+        $client = $this->client([['body' => ['general' => ['name' => 'Northwind', 'language' => 'de']]]]);
+
+        $settings = $client->channelSettings->get();
+        self::assertSame('GET', $this->http->last()['method']);
+        self::assertSame('/api/v1/channel/settings', $this->http->last()['path']);
+        self::assertSame([], $this->http->last()['query']);
+        self::assertSame('de', $settings['general']['language']);
+    }
+
+    public function testChannelSettingsUpdateSendsPartialGroupsAndExposesWarnings(): void
+    {
+        $client = $this->client([
+            ['body' => [
+                'general' => ['name' => 'Northwind'],
+                'warnings' => [['code' => 'unrecognized_parameter', 'param' => 'channel_settings.general.domain', 'message' => 'ignored']],
+            ]],
+        ]);
+        $legal = ['legal_notice_url' => 'https://northwind.example/impressum'];
+
+        $result = $client->channelSettings->update(['unsubscribe_page' => $legal]);
+        self::assertSame('PATCH', $this->http->last()['method']);
+        self::assertSame('/api/v1/channel/settings', $this->http->last()['path']);
+        self::assertSame(['channel_settings' => ['unsubscribe_page' => $legal]], $this->http->last()['body']);
+        self::assertSame('channel_settings.general.domain', $result->warnings()[0]->param);
+    }
+
     // --- Users ---------------------------------------------------------------
 
     public function testUsersIsExposedOnTheClient(): void

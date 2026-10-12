@@ -7,6 +7,7 @@ namespace Broadcast;
 use Broadcast\Resources\Autopilots;
 use Broadcast\Resources\Broadcasts;
 use Broadcast\Resources\ChannelDesign;
+use Broadcast\Resources\ChannelSettings;
 use Broadcast\Resources\Discovery;
 use Broadcast\Resources\EmailServers;
 use Broadcast\Resources\GlobalSuppressions;
@@ -53,8 +54,11 @@ final class Client
     public readonly Autopilots $autopilots;
     public readonly Discovery $discovery;
 
-    /** The channel's resolved brand kit (Settings → Design). Read-only. */
+    /** The channel's resolved brand kit (Settings → Brand Kit). update() needs Broadcast 2.46.0. */
     public readonly ChannelDesign $channelDesign;
+
+    /** The channel's settings (Broadcast 2.46.0 or later). */
+    public readonly ChannelSettings $channelSettings;
 
     /** The current channel's suppression list (plus check(), which reads the global list too). */
     public readonly Suppressions $suppressions;
@@ -88,6 +92,7 @@ final class Client
         $this->autopilots = new Autopilots($this);
         $this->discovery = new Discovery($this);
         $this->channelDesign = new ChannelDesign($this);
+        $this->channelSettings = new ChannelSettings($this);
         $this->suppressions = new Suppressions($this);
         $this->globalSuppressions = new GlobalSuppressions($this);
         $this->migration = new Migration($this);
