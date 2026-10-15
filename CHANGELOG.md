@@ -13,6 +13,11 @@ All notable changes to this project will be documented in this file.
 - `$client->channelDesign->update($kit)` for `PATCH /api/v1/channel/design`
   (Broadcast 2.46.0): change the brand kit. Needs `channel_settings_write`.
   The logo is the `logo_url` of an image in the channel's file library.
+- `$client->fileAssets` for `/api/v1/file_assets` (Broadcast 2.48.0), the
+  channel's file library: `list`, `get`, `upload` (multipart/form-data from a
+  path or a stream), `uploadBase64` (JSON with base64 `data`) and `delete`.
+  PNG, JPEG or GIF under 10 MB. Deleting a brand kit logo throws
+  `ValidationException` (422). Needs the new `file_assets` permissions.
 
 ## [0.6.0] - 2026-10-10
 

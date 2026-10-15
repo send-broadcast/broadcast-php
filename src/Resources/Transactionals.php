@@ -8,8 +8,6 @@ use Broadcast\Exception\ValidationException;
 
 final class Transactionals extends BaseResource
 {
-    public const MAX_IDEMPOTENCY_KEY_LENGTH = 255;
-
     /**
      * Send a transactional email.
      *
@@ -67,28 +65,5 @@ final class Transactionals extends BaseResource
     public function get(string|int $id): mixed
     {
         return $this->httpGet("/api/v1/transactionals/{$id}.json");
-    }
-
-    /** @return array<string,string> */
-    private static function idempotencyHeaders(?string $key): array
-    {
-        if ($key === null) {
-            return [];
-        }
-
-        $trimmed = trim($key);
-        if ($trimmed === '') {
-            return [];
-        }
-
-        if (mb_strlen($trimmed) > self::MAX_IDEMPOTENCY_KEY_LENGTH) {
-            throw new \InvalidArgumentException(sprintf(
-                'idempotency_key must be %d characters or fewer (got %d)',
-                self::MAX_IDEMPOTENCY_KEY_LENGTH,
-                mb_strlen($trimmed)
-            ));
-        }
-
-        return ['Idempotency-Key' => $trimmed];
     }
 }

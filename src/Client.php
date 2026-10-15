@@ -10,6 +10,7 @@ use Broadcast\Resources\ChannelDesign;
 use Broadcast\Resources\ChannelSettings;
 use Broadcast\Resources\Discovery;
 use Broadcast\Resources\EmailServers;
+use Broadcast\Resources\FileAssets;
 use Broadcast\Resources\GlobalSuppressions;
 use Broadcast\Resources\Migration;
 use Broadcast\Resources\OptInForms;
@@ -60,6 +61,9 @@ final class Client
     /** The channel's settings (Broadcast 2.46.0 or later). */
     public readonly ChannelSettings $channelSettings;
 
+    /** The channel's file library (Broadcast 2.48.0 or later). */
+    public readonly FileAssets $fileAssets;
+
     /** The current channel's suppression list (plus check(), which reads the global list too). */
     public readonly Suppressions $suppressions;
 
@@ -93,6 +97,7 @@ final class Client
         $this->discovery = new Discovery($this);
         $this->channelDesign = new ChannelDesign($this);
         $this->channelSettings = new ChannelSettings($this);
+        $this->fileAssets = new FileAssets($this);
         $this->suppressions = new Suppressions($this);
         $this->globalSuppressions = new GlobalSuppressions($this);
         $this->migration = new Migration($this);
@@ -208,6 +213,12 @@ final class Client
         $channelId = $this->activeChannelId();
         if ($channelId === null) {
             return $bodyOrParams;
+        }
+
+        if ($bodyOrParams instanceof Multipart) {
+            return $bodyOrParams->has('broadcast_channel_id')
+                ? $bodyOrParams
+                : $bodyOrParams->withField('broadcast_channel_id', $channelId);
         }
 
         $payload = is_array($bodyOrParams) ? $bodyOrParams : [];

@@ -43,7 +43,7 @@ final class PackageTest extends BaseTestCase
         foreach ([
             'subscribers', 'sequences', 'broadcasts', 'segments', 'topics', 'templates',
             'webhookEndpoints', 'transactionals', 'optInForms', 'emailServers',
-            'autopilots', 'discovery', 'migration',
+            'autopilots', 'discovery', 'migration', 'fileAssets',
         ] as $name) {
             self::assertTrue(isset($client->{$name}), "missing resource: {$name}");
         }

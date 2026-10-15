@@ -309,6 +309,36 @@ The `match_brand_kit` switches (`unsubscribe_page`, `confirmation_page`
 and `opt_in_forms`) decide where the brand kit is used. They are set
 here, not with the brand kit update.
 
+### File assets
+
+```php
+$file = $client->fileAssets->upload('/path/to/logo.png');
+$file['url']; // public URL that never expires
+
+// From an open stream: name the file
+$client->fileAssets->upload(fopen('php://temp', 'r+b'), ['filename' => 'banner.jpg']);
+
+// Already holding base64? Send it as JSON
+$client->fileAssets->uploadBase64(['filename' => 'logo.png', 'data' => base64_encode($bytes)]);
+
+$client->fileAssets->list(['filter' => 'logo', 'limit' => 20]); // ['data' => [...], 'total' => n]
+$client->fileAssets->get($file['id']);
+$client->fileAssets->delete($file['id']);
+
+// Use it as the brand kit logo
+$client->channelDesign->update(['brand' => ['logo_url' => $file['url']]]);
+```
+
+Broadcast 2.48.0 or later. The channel's file library: PNG, JPEG or GIF
+images under 10 MB. `upload()` sends multipart/form-data and takes the
+content type from the file extension unless you pass `content_type`. It also
+takes `channel_restricted` (`true` links the file to this channel only; by
+default every channel can use it, as in the web app) and `idempotency_key`.
+Another file type, or a file that is too large, throws `ValidationException`
+(422). `delete()` of a file that is a channel's brand kit logo also throws
+`ValidationException`: choose another logo first. Reading needs
+`file_assets_read`, uploading and deleting need `file_assets_write`.
+
 ### Email servers
 
 **Credential redaction guard.** The API returns credentials bullet-masked
@@ -506,6 +536,7 @@ integration requires.
 | Webhook Endpoints | `webhook_endpoints_read` -- list, get, deliveries | `webhook_endpoints_write` -- create, update, delete, test |
 | Autopilot | `autopilot_read` -- list, get, runs | `autopilot_write` -- create, update, delete, activate, pause, deactivate, trigger_run |
 | Channel Settings | `channel_settings_read` -- channelSettings get, channelDesign get | `channel_settings_write` -- channelSettings update, channelDesign update |
+| File Assets | `file_assets_read` -- list, get | `file_assets_write` -- upload, uploadBase64, delete |
 
 ---
 

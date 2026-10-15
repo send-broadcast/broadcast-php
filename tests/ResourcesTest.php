@@ -849,6 +849,229 @@ final class ResourcesTest extends TestCase
         self::assertSame('channel_settings.general.domain', $result->warnings()[0]->param);
     }
 
+    // --- File assets (Broadcast 2.48.0) -----------------------------------------
+
+    private const PNG_BYTES = "\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR";
+
+    private const FILE_ASSET = [
+        'id' => 5,
+        'filename' => 'logo.png',
+        'content_type' => 'image/png',
+        'byte_size' => 16,
+        'url' => 'https://mail.example.com/files/abc-logo.png',
+        'created_at' => '2026-10-14T09:00:00Z',
+    ];
+
+    public function testFileAssetsIsExposedOnTheClient(): void
+    {
+        $client = $this->client();
+        self::assertInstanceOf(\Broadcast\Resources\FileAssets::class, $client->fileAssets);
+    }
+
+    public function testFileAssetsList(): void
+    {
+        $client = $this->client([['body' => ['data' => [self::FILE_ASSET], 'total' => 1]]]);
+
+        $files = $client->fileAssets->list(['filter' => 'logo', 'limit' => 10, 'offset' => 20]);
+        self::assertSame('GET', $this->http->last()['method']);
+        self::assertSame('/api/v1/file_assets', $this->http->last()['path']);
+        self::assertSame(['filter' => 'logo', 'limit' => '10', 'offset' => '20'], $this->http->last()['query']);
+        self::assertSame(1, $files['total']);
+        self::assertSame('logo.png', $files['data'][0]['filename']);
+    }
+
+    public function testFileAssetsGet(): void
+    {
+        $client = $this->client([['body' => self::FILE_ASSET]]);
+
+        $file = $client->fileAssets->get(5);
+        self::assertSame(['GET', '/api/v1/file_assets/5'], [$this->http->last()['method'], $this->http->last()['path']]);
+        self::assertSame('https://mail.example.com/files/abc-logo.png', $file['url']);
+    }
+
+    public function testFileAssetsUploadFromAPathSendsMultipart(): void
+    {
+        $path = sys_get_temp_dir() . '/broadcast-php-test-logo.png';
+        file_put_contents($path, self::PNG_BYTES);
+        $client = $this->client([['status' => 201, 'body' => self::FILE_ASSET]]);
+
+        try {
+            $file = $client->fileAssets->upload($path, ['channel_restricted' => true, 'idempotency_key' => 'logo-1']);
+        } finally {
+            unlink($path);
+        }
+
+        $call = $this->http->last();
+        self::assertSame(['POST', '/api/v1/file_assets'], [$call['method'], $call['path']]);
+        self::assertSame('logo-1', $call['headers']['idempotency-key']);
+        self::assertMatchesRegularExpression('#^multipart/form-data; boundary=(\S+)$#', $call['headers']['content-type']);
+        $parts = self::multipartParts($call);
+
+        self::assertSame('form-data; name="file"; filename="broadcast-php-test-logo.png"', $parts['file']['disposition']);
+        self::assertSame('image/png', $parts['file']['type']);
+        self::assertSame(self::PNG_BYTES, $parts['file']['body']);
+        self::assertSame('true', $parts['channel_restricted']['body']);
+        self::assertSame(5, $file['id']);
+        self::assertSame(201, $file->status());
+    }
+
+    public function testFileAssetsUploadFromAStream(): void
+    {
+        $stream = fopen('php://memory', 'r+b');
+        self::assertNotFalse($stream);
+        fwrite($stream, self::PNG_BYTES);
+        rewind($stream);
+        $client = $this->client([['status' => 201, 'body' => self::FILE_ASSET]]);
+
+        $client->fileAssets->upload($stream, ['filename' => 'banner.JPG']);
+
+        $parts = self::multipartParts($this->http->last());
+        self::assertSame('form-data; name="file"; filename="banner.JPG"', $parts['file']['disposition']);
+        self::assertSame('image/jpeg', $parts['file']['type']);
+        self::assertSame(self::PNG_BYTES, $parts['file']['body']);
+        self::assertArrayNotHasKey('channel_restricted', $parts);
+        self::assertArrayNotHasKey('idempotency-key', $this->http->last()['headers']);
+    }
+
+    public function testFileAssetsUploadHonoursAnExplicitContentType(): void
+    {
+        $stream = fopen('php://memory', 'r+b');
+        self::assertNotFalse($stream);
+        fwrite($stream, self::PNG_BYTES);
+        rewind($stream);
+        $client = $this->client([['status' => 201, 'body' => self::FILE_ASSET]]);
+
+        $client->fileAssets->upload($stream, ['filename' => 'logo', 'content_type' => 'image/png', 'channel_restricted' => false]);
+
+        $parts = self::multipartParts($this->http->last());
+        self::assertSame('image/png', $parts['file']['type']);
+        self::assertSame('false', $parts['channel_restricted']['body']);
+    }
+
+    public function testFileAssetsUploadFromAStreamNeedsAFilename(): void
+    {
+        $stream = fopen('php://memory', 'r+b');
+        self::assertNotFalse($stream);
+        $client = $this->client();
+
+        try {
+            $client->fileAssets->upload($stream);
+            self::fail('expected InvalidArgumentException');
+        } catch (\InvalidArgumentException $e) {
+            self::assertStringContainsString('filename', $e->getMessage());
+        }
+        self::assertCount(0, $this->http->calls, 'must not have issued the request');
+    }
+
+    public function testFileAssetsUploadOfAMissingPathFailsBeforeSending(): void
+    {
+        $client = $this->client();
+
+        try {
+            $client->fileAssets->upload('/nonexistent/broadcast-php/logo.png');
+            self::fail('expected InvalidArgumentException');
+        } catch (\InvalidArgumentException $e) {
+            self::assertStringContainsString('/nonexistent/broadcast-php/logo.png', $e->getMessage());
+        }
+        self::assertCount(0, $this->http->calls, 'must not have issued the request');
+    }
+
+    public function testFileAssetsUploadCarriesTheChannelIdAsAPart(): void
+    {
+        $stream = fopen('php://memory', 'r+b');
+        self::assertNotFalse($stream);
+        $client = $this->client([['status' => 201, 'body' => self::FILE_ASSET]], ['broadcastChannelId' => 42]);
+
+        $client->fileAssets->upload($stream, ['filename' => 'logo.png']);
+
+        self::assertSame('42', self::multipartParts($this->http->last())['broadcast_channel_id']['body']);
+    }
+
+    public function testFileAssetsUploadBase64SendsJson(): void
+    {
+        $client = $this->client([['status' => 201, 'body' => self::FILE_ASSET]]);
+        $data = base64_encode(self::PNG_BYTES);
+
+        $client->fileAssets->uploadBase64([
+            'filename' => 'logo.png',
+            'data' => $data,
+            'content_type' => 'image/png',
+            'channel_restricted' => true,
+            'idempotency_key' => 'logo-2',
+        ]);
+
+        $call = $this->http->last();
+        self::assertSame(['POST', '/api/v1/file_assets'], [$call['method'], $call['path']]);
+        self::assertSame('application/json', $call['headers']['content-type']);
+        self::assertSame('logo-2', $call['headers']['idempotency-key']);
+        self::assertSame(
+            ['filename' => 'logo.png', 'data' => $data, 'content_type' => 'image/png', 'channel_restricted' => true],
+            $call['body']
+        );
+    }
+
+    public function testFileAssetsUploadBase64OmitsUnprovidedKeys(): void
+    {
+        $client = $this->client([['status' => 201, 'body' => self::FILE_ASSET]]);
+
+        $client->fileAssets->uploadBase64(['filename' => 'logo.png', 'data' => 'iVBORw0KGgo=']);
+
+        self::assertSame(['filename' => 'logo.png', 'data' => 'iVBORw0KGgo='], $this->http->last()['body']);
+    }
+
+    public function testFileAssetsDelete(): void
+    {
+        $client = $this->client([['body' => ['message' => 'File asset deleted successfully']]]);
+
+        $result = $client->fileAssets->delete(5);
+        self::assertSame(['DELETE', '/api/v1/file_assets/5'], [$this->http->last()['method'], $this->http->last()['path']]);
+        self::assertSame('File asset deleted successfully', $result['message']);
+    }
+
+    public function testFileAssetsDeleteOfABrandKitLogoThrowsValidationException(): void
+    {
+        $error = "This file is the channel's Brand Kit logo. Choose another logo (or none) in Settings > Brand Kit "
+            . 'or with PATCH /api/v1/channel/design, then delete the file.';
+        $client = $this->client([['status' => 422, 'body' => ['error' => $error]]]);
+
+        try {
+            $client->fileAssets->delete(5);
+            self::fail('expected ValidationException');
+        } catch (\Broadcast\Exception\ValidationException $e) {
+            self::assertSame($error, $e->getMessage());
+        }
+        self::assertCount(1, $this->http->calls, 'a 422 is not retried');
+    }
+
+    /**
+     * Split a recorded multipart body into its parts, keyed by field name.
+     *
+     * @param array<string,mixed> $call
+     * @return array<string,array{disposition:string,type:?string,body:string}>
+     */
+    private static function multipartParts(array $call): array
+    {
+        preg_match('#boundary=(\S+)$#', (string) $call['headers']['content-type'], $match);
+        $boundary = $match[1] ?? '';
+        $raw = (string) $call['rawBody'];
+        self::assertStringEndsWith("--{$boundary}--\r\n", $raw);
+
+        $parts = [];
+        foreach (array_slice(explode("--{$boundary}", $raw), 1, -1) as $chunk) {
+            [$head, $body] = explode("\r\n\r\n", substr($chunk, 2), 2);
+            preg_match('#Content-Disposition: (.+)#', $head, $disposition);
+            preg_match('#Content-Type: (.+)#', $head, $type);
+            preg_match('#name="([^"]+)"#', $disposition[1], $name);
+            $parts[$name[1]] = [
+                'disposition' => trim($disposition[1]),
+                'type' => isset($type[1]) ? trim($type[1]) : null,
+                'body' => substr($body, 0, -2),
+            ];
+        }
+
+        return $parts;
+    }
+
     // --- Users ---------------------------------------------------------------
 
     public function testUsersIsExposedOnTheClient(): void

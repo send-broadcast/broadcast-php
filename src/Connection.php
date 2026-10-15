@@ -44,7 +44,7 @@ final class Connection
     /**
      * @param 'GET'|'POST'|'PATCH'|'PUT'|'DELETE' $method
      * @param non-empty-string $path always begins with a slash
-     * @param array<string,mixed>|null $payload
+     * @param array<string,mixed>|Multipart|null $payload
      * @param array<string,mixed> $headers
      */
     public function request(
@@ -132,6 +132,9 @@ final class Connection
             'Content-Type' => 'application/json',
             'User-Agent' => 'broadcast-php/' . Version::VERSION,
         ];
+        if ($payload instanceof Multipart) {
+            $headers['Content-Type'] = $payload->contentType();
+        }
         foreach ($extraHeaders as $name => $value) {
             if ($value === null) {
                 continue;
@@ -140,7 +143,9 @@ final class Connection
         }
 
         $body = null;
-        if ($method !== 'GET' && self::isPresent($payload)) {
+        if ($payload instanceof Multipart) {
+            $body = $payload->encode();
+        } elseif ($method !== 'GET' && self::isPresent($payload)) {
             $body = json_encode($payload, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
         }
 

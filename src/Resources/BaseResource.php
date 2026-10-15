@@ -14,6 +14,8 @@ use Broadcast\Client;
  */
 abstract class BaseResource
 {
+    public const MAX_IDEMPOTENCY_KEY_LENGTH = 255;
+
     public function __construct(protected Client $client)
     {
     }
@@ -85,5 +87,32 @@ abstract class BaseResource
     protected static function compact(array $values): array
     {
         return array_filter($values, static fn ($value) => $value !== null);
+    }
+
+    /**
+     * Validate an idempotency key and turn it into the Idempotency-Key header.
+     *
+     * @return array<string,string>
+     */
+    protected static function idempotencyHeaders(?string $key): array
+    {
+        if ($key === null) {
+            return [];
+        }
+
+        $trimmed = trim($key);
+        if ($trimmed === '') {
+            return [];
+        }
+
+        if (mb_strlen($trimmed) > self::MAX_IDEMPOTENCY_KEY_LENGTH) {
+            throw new \InvalidArgumentException(sprintf(
+                'idempotency_key must be %d characters or fewer (got %d)',
+                self::MAX_IDEMPOTENCY_KEY_LENGTH,
+                mb_strlen($trimmed)
+            ));
+        }
+
+        return ['Idempotency-Key' => $trimmed];
     }
 }
