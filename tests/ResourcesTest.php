@@ -331,7 +331,7 @@ final class ResourcesTest extends TestCase
     public function testTriggerFrequencies(): void
     {
         self::assertSame(
-            ['always', 'every_visit', 'once_per_session', 'once_per_day', 'once_per_week', 'once'],
+            ['always', 'every_visit', 'once_per_session', 'once_per_day', 'once_per_week', 'once', 'once_per_days'],
             \Broadcast\Resources\OptInForms::TRIGGER_FREQUENCIES
         );
     }
