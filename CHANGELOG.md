@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-10-17
+
 ### Added
 
 - `OptInForms::TRIGGER_FREQUENCIES` includes `once_per_days` (Broadcast 2.49): the popup shows
