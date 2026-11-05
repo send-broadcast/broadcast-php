@@ -14,14 +14,6 @@ parameters:
     treatPhpDocTypesAsCertain: false
 
     ignoreErrors:
-        # Response bodies are parsed JSON. Until the OpenAPI overlay carries
-        # response schemas there is nothing to type them against, so `mixed`
-        # here is honest rather than lazy — inventing a shape would be a lie the
-        # compiler enforces.
-        -
-            identifier: missingType.iterableValue
-            path: src/Resources/*.php
-
         # PackageTest asserts the exception hierarchy — that AuthenticationException
         # extends ApiException, and that ValidationException deliberately does not.
         # PHPStan can prove those statically, which is precisely why they hold; the
@@ -33,12 +25,6 @@ parameters:
         -
             identifier: function.impossibleType
             path: tests/PackageTest.php
-
-        # The test calls a collection that does not exist, on purpose, to prove
-        # __call rejects it with BadMethodCallException rather than a fatal.
-        -
-            identifier: method.notFound
-            path: tests/ResourcesTest.php
 
         # PHPStan infers the literal array passed two lines earlier rather than
         # the recorded request body, so it believes the key cannot be present.

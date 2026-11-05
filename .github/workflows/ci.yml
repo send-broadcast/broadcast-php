@@ -83,8 +83,3 @@ jobs:
           --fail-on-notice
           --fail-on-warning
           --fail-on-phpunit-deprecation
-
-      # The .api-coverage.yml manifest is checked by the suite itself
-      # (PackageTest::testCoverageManifestMatchesTheGeneratedCollections)
-      # rather than a bespoke step here, so it runs on every PHP version and
-      # can be reproduced locally with `composer test`.

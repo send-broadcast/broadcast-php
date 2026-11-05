@@ -12,7 +12,6 @@ use Broadcast\Resources\Discovery;
 use Broadcast\Resources\EmailServers;
 use Broadcast\Resources\FileAssets;
 use Broadcast\Resources\GlobalSuppressions;
-use Broadcast\Resources\Migration;
 use Broadcast\Resources\OptInForms;
 use Broadcast\Resources\Segments;
 use Broadcast\Resources\Topics;
@@ -71,7 +70,6 @@ final class Client
     public readonly GlobalSuppressions $globalSuppressions;
 
     /** Read-only export endpoints. Requires an admin (system) API token. */
-    public readonly Migration $migration;
 
     /** User management. Requires an admin (system) API token. */
     public readonly Users $users;
@@ -100,7 +98,6 @@ final class Client
         $this->fileAssets = new FileAssets($this);
         $this->suppressions = new Suppressions($this);
         $this->globalSuppressions = new GlobalSuppressions($this);
-        $this->migration = new Migration($this);
         $this->users = new Users($this);
     }
 

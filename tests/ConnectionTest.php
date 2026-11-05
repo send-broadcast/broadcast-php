@@ -194,7 +194,7 @@ final class ConnectionTest extends TestCase
     {
         $png = "\x89PNG\r\n";
         $client = $this->client(['status' => 200, 'text' => $png, 'headers' => ['content-type' => 'image/png']]);
-        self::assertSame($png, $client->migration->downloadFileAsset(1));
+        self::assertSame($png, $client->discovery->skill());
     }
 
     // --- Error mapping ------------------------------------------------------

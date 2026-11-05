@@ -555,101 +555,12 @@ final class ResourcesTest extends TestCase
         self::assertSame(['autopilot' => ['openrouter_api_key' => 'sk-or-v1-realkey']], $this->http->last()['body']);
     }
 
-    // --- Migration ----------------------------------------------------------
-
-    public function testAllNineteenCollections(): void
-    {
-        $client = $this->client(['body' => ['data' => [], 'pagination' => ['has_more' => false]]]);
-
-        foreach (\Broadcast\Resources\Migration::COLLECTIONS as $method => $path) {
-            $client->migration->{$method}(['limit' => 10]);
-            self::assertSame("/api/migration/v1/{$path}", $this->http->last()['path'], $method);
-        }
-    }
-
-    public function testUnknownCollectionFailsLoudly(): void
-    {
-        $client = $this->client();
-        $this->expectException(\BadMethodCallException::class);
-        $client->migration->notARealCollection();
-    }
-
-    public function testManifest(): void
-    {
-        $client = $this->client();
-        $client->migration->manifest(['days_history' => 30]);
-        self::assertSame('/api/migration/v1/manifest', $this->http->last()['path']);
-        self::assertSame('30', $this->http->last()['query']['days_history']);
-    }
-
-    // The channel suppression list (UnsubscribedEmail), separate from
-    // suppressions. Without it an export silently dropped the list.
-    public function testEachRecordPagesThroughUnsubscribedEmails(): void
-    {
-        $client = $this->client([
-            ['body' => ['data' => [['email' => 'gone@example.com']], 'pagination' => ['has_more' => true, 'limit' => 1]]],
-            ['body' => ['data' => [['email' => 'left@example.com']], 'pagination' => ['has_more' => false, 'limit' => 1]]],
-        ]);
-
-        $emails = [];
-        foreach ($client->migration->eachRecord('unsubscribedEmails', 1) as $record) {
-            $emails[] = $record['email'];
-        }
-
-        self::assertSame(['gone@example.com', 'left@example.com'], $emails);
-        self::assertSame('/api/migration/v1/unsubscribed_emails', $this->http->calls[0]['path']);
-        self::assertSame('1', $this->http->calls[1]['query']['offset']);
-    }
-
-    public function testEachRecordPagesUntilHasMoreIsFalse(): void
-    {
-        $client = $this->client([
-            ['body' => ['data' => [['id' => 1], ['id' => 2]], 'pagination' => ['has_more' => true, 'limit' => 2]]],
-            ['body' => ['data' => [['id' => 3]], 'pagination' => ['has_more' => false, 'limit' => 2]]],
-        ]);
-
-        $seen = [];
-        foreach ($client->migration->eachRecord('subscribers', 2) as $record) {
-            $seen[] = $record['id'];
-        }
-
-        self::assertSame([1, 2, 3], $seen);
-        self::assertSame('0', $this->http->calls[0]['query']['offset']);
-        self::assertSame('2', $this->http->calls[1]['query']['offset']);
-    }
-
-    public function testEachRecordAdvancesByTheServerReportedLimit(): void
-    {
-        // The server clamps limit to 250; advancing by the requested 1000 would skip records.
-        $first = array_map(static fn (int $i) => ['id' => $i], range(0, 249));
-        $client = $this->client([
-            ['body' => ['data' => $first, 'pagination' => ['has_more' => true, 'limit' => 250]]],
-            ['body' => ['data' => [['id' => 250]], 'pagination' => ['has_more' => false, 'limit' => 250]]],
-        ]);
-
-        $seen = iterator_to_array($client->migration->eachRecord('subscribers', 1000), false);
-
-        self::assertCount(251, $seen);
-        self::assertSame('250', $this->http->calls[1]['query']['offset']);
-    }
-
-    public function testEachRecordStopsOnAZeroAdvance(): void
-    {
-        // A zero advance must break the loop rather than spin forever.
-        $client = $this->client(['body' => ['data' => [['id' => 1]], 'pagination' => ['has_more' => true, 'limit' => 0]]]);
-
-        $seen = iterator_to_array($client->migration->eachRecord('subscribers'), false);
-
-        self::assertCount(1, $seen);
-        self::assertCount(1, $this->http->calls);
-    }
-
     // --- Channel scoping ----------------------------------------------------
 
     public function testChannelIdIsInjectedIntoQueryParams(): void
     {
         $client = $this->client([], ['broadcastChannelId' => 42]);
-        $client->migration->subscribers();
+        $client->broadcasts->list();
         self::assertSame('42', $this->http->last()['query']['broadcast_channel_id']);
     }
 
@@ -663,7 +574,7 @@ final class ResourcesTest extends TestCase
     public function testAnExplicitChannelIdWins(): void
     {
         $client = $this->client([], ['broadcastChannelId' => 42]);
-        $client->migration->subscribers(['broadcast_channel_id' => 7]);
+        $client->broadcasts->list(['broadcast_channel_id' => 7]);
         self::assertSame('7', $this->http->last()['query']['broadcast_channel_id']);
     }
 
@@ -672,11 +583,11 @@ final class ResourcesTest extends TestCase
         $client = $this->client();
 
         $client->withChannel(99, function () use ($client): void {
-            $client->migration->subscribers();
+            $client->broadcasts->list();
         });
         self::assertSame('99', $this->http->last()['query']['broadcast_channel_id']);
 
-        $client->migration->subscribers();
+        $client->broadcasts->list();
         self::assertArrayNotHasKey('broadcast_channel_id', $this->http->last()['query']);
     }
 
@@ -692,7 +603,7 @@ final class ResourcesTest extends TestCase
             // expected
         }
 
-        $client->migration->subscribers();
+        $client->broadcasts->list();
         self::assertSame('42', $this->http->last()['query']['broadcast_channel_id']);
     }
 
