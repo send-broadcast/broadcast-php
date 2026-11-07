@@ -11,6 +11,11 @@ All notable changes to this project will be documented in this file.
   Broadcast 3 removes the `/api/migration/v1` export API. A server before 3.0
   still serves it; stay on 0.8.x to keep using it.
 
+### Fixed
+
+- No "curl_close() is deprecated" notice on PHP 8.5: the transport no longer
+  calls `curl_close()` (a no-op since PHP 8.0).
+
 ## [0.8.0] - 2026-10-17
 
 ### Added

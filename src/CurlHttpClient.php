@@ -48,7 +48,8 @@ final class CurlHttpClient implements HttpClientInterface
         $error = curl_error($handle);
         $status = (int) curl_getinfo($handle, CURLINFO_RESPONSE_CODE);
         $headerSize = (int) curl_getinfo($handle, CURLINFO_HEADER_SIZE);
-        curl_close($handle);
+        // No curl_close(): a no-op since PHP 8.0 and deprecated in 8.5. The handle is freed when
+        // it goes out of scope.
 
         if ($raw === false) {
             throw new TimeoutException(sprintf('Request timeout: %s (curl %d)', $error, $errno));
