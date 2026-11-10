@@ -27,6 +27,18 @@ final class Discovery extends BaseResource
         return $this->httpGet('/api/v1/status');
     }
 
+    /**
+     * The channels this token can reach (Broadcast 3.1 or later): every channel
+     * for an admin token, its own channel for a channel token. Returns
+     * `token_type` and `channels` (each `id`, `name`, `slug`, `active`). An
+     * admin token then names one with `broadcastChannelId` or `withChannel()`.
+     * A plugin developer token is refused.
+     */
+    public function channels(): mixed
+    {
+        return $this->httpGet('/api/v1/channels');
+    }
+
     /** Full capability manifest: version, permissions, endpoint list, rate limit. */
     public function prime(): mixed
     {

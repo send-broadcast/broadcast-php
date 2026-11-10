@@ -40,6 +40,17 @@ final class ResourcesTest extends TestCase
         self::assertSame('/api/v1/prime', $this->http->last()['path']);
     }
 
+    /** Broadcast 3.1: every channel for an admin token, its own for a channel token. */
+    public function testChannelsListsTheChannelsTheTokenCanReach(): void
+    {
+        $client = $this->client();
+        $client->discovery->channels();
+        self::assertSame('GET', $this->http->last()['method']);
+        self::assertSame('/api/v1/channels', $this->http->last()['path']);
+        $client->channels();
+        self::assertSame('/api/v1/channels', $this->http->last()['path']);
+    }
+
     // --- Subscribers --------------------------------------------------------
 
     public function testSubscribersListAndFind(): void

@@ -178,6 +178,11 @@ final class Client
         return $this->discovery->openapi();
     }
 
+    public function channels(): mixed
+    {
+        return $this->discovery->channels();
+    }
+
     // --- Internal ---
 
     /**

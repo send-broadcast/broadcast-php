@@ -2,7 +2,7 @@
 
 Official PHP client for [Broadcast](https://sendbroadcast.net), the self-hosted email marketing platform.
 
-Works with any self-hosted Broadcast instance. Covers **122/122 API operations** of Broadcast 3.0, verified against the API's generated OpenAPI document.
+Works with any self-hosted Broadcast instance. Covers **123/123 API operations** of Broadcast 3.1, verified against the API's generated OpenAPI document.
 
 📖 **[PHP SDK documentation](https://sendbroadcast.net/docs/php-sdk)** · [API reference](https://sendbroadcast.net/docs/api-authentication) · [All docs](https://sendbroadcast.net/docs)
 
@@ -409,6 +409,14 @@ $client->withChannel(123, fn () => $client->emailServers->list());
 ```
 
 The previous scope is restored afterwards, including when the callable throws.
+
+To find the channel ids, list the channels the token can reach (Broadcast 3.1 or later):
+
+```php
+foreach ($client->channels()['channels'] as $channel) {
+    $client->withChannel($channel['id'], fn () => $client->subscribers->list());
+}
+```
 
 ---
 
