@@ -212,11 +212,25 @@ final class ResourcesTest extends TestCase
         self::assertSame('true', $this->http->last()['query']['include_steps']);
 
         $client->sequences->addSubscriber(3, ['email' => 'a@b.com']);
+        self::assertSame('POST', $this->http->last()['method']);
         self::assertSame('/api/v1/sequences/3/add_subscriber', $this->http->last()['path']);
+        self::assertSame(['subscriber' => ['email' => 'a@b.com']], $this->http->last()['body']);
+
+        $client->sequences->addSubscriber(3, ['email' => 'a@b.com', 'first_name' => 'Ada', 'last_name' => 'Lovelace']);
+        self::assertSame(
+            ['subscriber' => ['email' => 'a@b.com', 'first_name' => 'Ada', 'last_name' => 'Lovelace']],
+            $this->http->last()['body'],
+        );
+
+        // An already-wrapped array is not wrapped twice.
+        $client->sequences->addSubscriber(3, ['subscriber' => ['email' => 'a@b.com', 'first_name' => 'Ada']]);
+        self::assertSame(['subscriber' => ['email' => 'a@b.com', 'first_name' => 'Ada']], $this->http->last()['body']);
 
         $client->sequences->removeSubscriber(3, 'a@b.com');
         self::assertSame('DELETE', $this->http->last()['method']);
-        self::assertSame(['email' => 'a@b.com'], $this->http->last()['body']);
+        self::assertSame('/api/v1/sequences/3/remove_subscriber', $this->http->last()['path']);
+        self::assertSame(['subscriber' => ['email' => 'a@b.com']], $this->http->last()['body']);
+        self::assertSame([], $this->http->last()['query']);
 
         $client->sequences->listSubscribers(3, 2);
         self::assertSame('2', $this->http->last()['query']['page']);

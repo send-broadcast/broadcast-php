@@ -35,16 +35,29 @@ final class Sequences extends BaseResource
     }
 
     // --- Subscriber enrollment ---
+    //
+    // Both nest the attributes under `subscriber`, because the API reads them
+    // with `params.require(:subscriber)`. Sent flat, the server answers 400.
 
-    /** @param array<string,mixed> $attrs */
+    /**
+     * Enrolls a subscriber. Pass `['email' => ..., 'first_name' => ..., 'last_name' => ...]`;
+     * the client wraps it in `subscriber`. An array that already has `subscriber` is sent as is.
+     *
+     * @param array<string,mixed> $attrs
+     */
     public function addSubscriber(string|int $sequenceId, array $attrs): mixed
     {
-        return $this->httpPost("/api/v1/sequences/{$sequenceId}/add_subscriber", $attrs);
+        $body = is_array($attrs['subscriber'] ?? null) ? $attrs : ['subscriber' => $attrs];
+
+        return $this->httpPost("/api/v1/sequences/{$sequenceId}/add_subscriber", $body);
     }
 
     public function removeSubscriber(string|int $sequenceId, string $email): mixed
     {
-        return $this->httpDelete("/api/v1/sequences/{$sequenceId}/remove_subscriber", ['email' => $email]);
+        return $this->httpDelete(
+            "/api/v1/sequences/{$sequenceId}/remove_subscriber",
+            ['subscriber' => ['email' => $email]],
+        );
     }
 
     public function listSubscribers(string|int $sequenceId, int $page = 1): mixed
