@@ -54,10 +54,11 @@ final class Sequences extends BaseResource
 
     public function removeSubscriber(string|int $sequenceId, string $email): mixed
     {
-        return $this->httpDelete(
-            "/api/v1/sequences/{$sequenceId}/remove_subscriber",
-            ['subscriber' => ['email' => $email]],
-        );
+        // The verb and the path stay on one line: Broadcast's CI reads this file line by line to
+        // check that the SDK has every API operation (bin/rails openapi:coverage_check).
+        $body = ['subscriber' => ['email' => $email]];
+
+        return $this->httpDelete("/api/v1/sequences/{$sequenceId}/remove_subscriber", $body);
     }
 
     public function listSubscribers(string|int $sequenceId, int $page = 1): mixed
